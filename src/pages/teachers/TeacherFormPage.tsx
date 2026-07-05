@@ -160,10 +160,9 @@ export default function TeacherFormPage() {
                     <SelectValue placeholder="Selecciona" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Mathematics">Mathematics</SelectItem>
-                    <SelectItem value="Science">Science</SelectItem>
-                    <SelectItem value="Language">Language</SelectItem>
-                    <SelectItem value="History">History</SelectItem>
+                    <SelectItem value="Nombrado">Nombrado</SelectItem>
+                    <SelectItem value="Contratado">Contratado</SelectItem>
+                    <SelectItem value="Auxiliar">Auxiliar</SelectItem>
                   </SelectContent>
                 </Select>
                 {fieldError("specialty") && <p className="text-xs text-destructive">{fieldError("specialty")}</p>}

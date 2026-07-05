@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent, useMemo } from "react";
 import { Save } from "lucide-react";
 import {
   Dialog,
@@ -35,6 +35,8 @@ interface FormDialogProps<T> {
   isSubmitting?: boolean;
   /** Backend field-level validation errors, e.g. { name: ["is required"] }. */
   serverErrors?: Record<string, string[]> | null;
+  /** Whether the form options are still loading. */
+  isFormLoading?: boolean;
 }
 
 export function FormDialog<T extends Record<string, any>>({
@@ -48,6 +50,7 @@ export function FormDialog<T extends Record<string, any>>({
   submitLabel = "Guardar",
   isSubmitting = false,
   serverErrors,
+  isFormLoading = false,
 }: FormDialogProps<T>) {
   const [values, setValues] = useState<T>(initialValues);
 
@@ -66,6 +69,9 @@ export function FormDialog<T extends Record<string, any>>({
     onSubmit(values);
   }
 
+  // Memoizar los fields para evitar que se recreen en cada renderizado
+  const memoizedFields = useMemo(() => fields, [fields]);
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
@@ -76,7 +82,7 @@ export function FormDialog<T extends Record<string, any>>({
           </DialogHeader>
 
           <DialogBody className="grid gap-4 sm:grid-cols-2">
-            {fields.map((field) => {
+            {memoizedFields.map((field) => {
               const name = String(field.name);
               const value = values[field.name] ?? "";
               const fieldErrors = serverErrors?.[name];
@@ -90,7 +96,7 @@ export function FormDialog<T extends Record<string, any>>({
 
                   {field.type === "select" ? (
                     <Select
-                      value={String(value)}
+                      value={value || undefined}
                       onValueChange={(v) => handleChange(field.name, v)}
                     >
                       <SelectTrigger id={name} aria-invalid={Boolean(fieldErrors)}>
@@ -142,10 +148,10 @@ export function FormDialog<T extends Record<string, any>>({
           </DialogBody>
 
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isSubmitting}>
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isSubmitting || isFormLoading}>
               Cancelar
             </Button>
-            <LoadingButton type="submit" isLoading={isSubmitting}>
+            <LoadingButton type="submit" isLoading={isSubmitting || isFormLoading}>
               <Save className="h-4 w-4" />
               {submitLabel}
             </LoadingButton>

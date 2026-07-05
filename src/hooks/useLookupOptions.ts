@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState, useCallback } from "react";
 import type { SelectOption } from "@/types";
 
 interface ListLikeService<T> {
@@ -9,30 +9,28 @@ interface ListLikeService<T> {
  * Fetches every record of a small catalog (levels, classrooms, shifts...)
  * and maps it into `<Select>` options. Reused by every form that needs to
  * populate a dropdown from another module's catalog.
+ * 
+ * By default, options are NOT loaded automatically. Call `fetch()` to load them,
+ * which is useful for lazy-loading when a form dialog opens.
  */
 export function useLookupOptions<T>(
   service: ListLikeService<T>,
   mapToOption: (item: T) => SelectOption
 ) {
   const [options, setOptions] = useState<SelectOption[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
 
-  useEffect(() => {
-    let active = true;
+  const fetch = useCallback(async () => {
     setIsLoading(true);
-    service
-      .list({ limit: 200 })
-      .then((result) => {
-        if (active) setOptions(result.items.map(mapToOption));
-      })
-      .finally(() => {
-        if (active) setIsLoading(false);
-      });
-    return () => {
-      active = false;
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    try {
+      const result = await service.list({ limit: 200 });
+      setOptions(result.items.map(mapToOption));
+    } catch (err) {
+      console.error("Error fetching lookup options:", err);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [service, mapToOption]);
 
-  return { options, isLoading };
+  return { options, isLoading, fetch };
 }

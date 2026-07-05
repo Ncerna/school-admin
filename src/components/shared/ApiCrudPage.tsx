@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Plus, Search } from "lucide-react";
 import { PageHeader } from "./PageHeader";
 import { DataTable } from "./DataTable";
@@ -28,6 +28,8 @@ interface ApiCrudPageProps<T extends { id: string }, TPayload = Omit<T, "id">> {
   emptyItem: TPayload;
   searchPlaceholder?: string;
   newLabel?: string;
+  /** Callback when form dialog opens (for lazy loading options) */
+  onFormOpen?: () => void;
 }
 
 /**
@@ -45,12 +47,27 @@ export function ApiCrudPage<T extends { id: string }, TPayload = Omit<T, "id">>(
   emptyItem,
   searchPlaceholder = "Buscar...",
   newLabel = "Nuevo",
+  onFormOpen,
 }: ApiCrudPageProps<T, TPayload>) {
   const resource = useCrudResource<T, TPayload>(api);
   const [formOpen, setFormOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<T | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<T | null>(null);
   const [formErrors, setFormErrors] = useState<Record<string, string[]> | null>(null);
+  
+  // Use a ref to track if onFormOpen has been called for this open
+  const hasCalledOnFormOpen = useRef(false);
+
+  // Call onFormOpen when form dialog opens (only once per open)
+  useEffect(() => {
+    if (formOpen && onFormOpen && !hasCalledOnFormOpen.current) {
+      hasCalledOnFormOpen.current = true;
+      onFormOpen();
+    }
+    if (!formOpen) {
+      hasCalledOnFormOpen.current = false;
+    }
+  }, [formOpen, onFormOpen]);
 
   function openCreate() {
     setEditingItem(null);
@@ -131,7 +148,6 @@ export function ApiCrudPage<T extends { id: string }, TPayload = Omit<T, "id">>(
         currentPage={resource.page}
         itemsPerPage={resource.pagination?.limit ?? 10}
       />
-
 
       <Pagination pagination={resource.pagination} onPageChange={resource.setPage} disabled={resource.isLoading} />
 
