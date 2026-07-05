@@ -25,6 +25,10 @@ interface DataTableProps<T extends { id: string }> {
   onSort?: (accessor: string) => void;
   /** Hides the built-in Editar/Eliminar column for read-only tables. */
   hideRowActions?: boolean;
+  /** Current page number (1-based) for row numbering. */
+  currentPage?: number;
+  /** Number of items per page. */
+  itemsPerPage?: number;
 }
 
 export function DataTable<T extends { id: string }>({
@@ -39,6 +43,8 @@ export function DataTable<T extends { id: string }>({
   sortDir,
   onSort,
   hideRowActions = false,
+  currentPage = 1,
+  itemsPerPage = 10,
 }: DataTableProps<T>) {
   if (isLoading) {
     return (
@@ -46,6 +52,7 @@ export function DataTable<T extends { id: string }>({
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead className="w-[50px]">#</TableHead>
               {columns.map((col) => (
                 <TableHead key={String(col.accessor)} className={col.className}>
                   {col.header}
@@ -56,13 +63,14 @@ export function DataTable<T extends { id: string }>({
           </TableHeader>
           <TableBody>
             {Array.from({ length: 5 }).map((_, rowIndex) => (
-              <TableRow key={rowIndex}>
+              <TableRow key={rowIndex} className="h-10">
+                <TableCell className="py-2 font-mono text-sm">{currentPage * itemsPerPage - itemsPerPage + rowIndex + 1}</TableCell>
                 {columns.map((col) => (
-                  <TableCell key={String(col.accessor)}>
-                    <Skeleton className="h-4 w-full max-w-[160px]" />
+                  <TableCell key={String(col.accessor)} className="py-2">
+                    <Skeleton className="h-3 w-full max-w-[160px]" />
                   </TableCell>
                 ))}
-                {!hideRowActions && <TableCell />}
+                {!hideRowActions && <TableCell className="py-2" />}
               </TableRow>
             ))}
           </TableBody>
@@ -86,6 +94,7 @@ export function DataTable<T extends { id: string }>({
       <Table>
         <TableHeader>
           <TableRow>
+            <TableHead className="w-[50px]">#</TableHead>
             {columns.map((col) => {
               const key = String(col.accessor);
               const isActive = sortBy === key;
@@ -118,15 +127,16 @@ export function DataTable<T extends { id: string }>({
           </TableRow>
         </TableHeader>
         <TableBody>
-          {data.map((item) => (
-            <TableRow key={item.id}>
+          {data.map((item, index) => (
+            <TableRow key={item.id} className="h-10">
+              <TableCell className="py-2 font-mono text-sm">{currentPage * itemsPerPage - itemsPerPage + index + 1}</TableCell>
               {columns.map((col) => (
-                <TableCell key={String(col.accessor)} className={col.className}>
+                <TableCell key={String(col.accessor)} className="py-2">
                   {col.render ? col.render(item) : String(item[col.accessor] ?? "—")}
                 </TableCell>
               ))}
               {!hideRowActions && (
-                <TableCell className="text-right">
+                <TableCell className="text-right py-2">
                   <div className="flex justify-end gap-1">
                     <Button variant="ghost" size="icon" aria-label="Editar" onClick={() => onEdit(item)}>
                       <Pencil className="h-4 w-4" />

@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent, useRef } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import { ArrowLeft, Save } from "lucide-react";
 import { PageHeader } from "@/components/shared/PageHeader";
@@ -6,22 +6,25 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { LoadingButton } from "@/components/common/LoadingButton";
 import { Button } from "@/components/ui/button";
 import { studentsService } from "@/services/students.service";
 import { ApiError } from "@/types/api";
-import type { StudentPayload } from "@/types";
+import type { Student, StudentPayload } from "@/types";
 
 const emptyStudent: StudentPayload = {
   firstName: "",
   lastName: "",
   dni: "",
   email: "",
+  phone: "",
   gender: "",
   country: "",
   address: "",
   birthDate: "",
   emergencyContact: "",
+  livesWithParents: true,
   guardian: { names: "", surnames: "", dni: "", phone: "", relationshipType: "" },
 };
 
@@ -46,19 +49,26 @@ export default function StudentFormPage() {
     ...values,
     guardian: values.guardian ?? { names: "", surnames: "", dni: "", phone: "", relationshipType: "" },
   };
+ 
   const [isLoading, setIsLoading] = useState(isEditing);
   const [isSaving, setIsSaving] = useState(false);
   const [errors, setErrors] = useState<Record<string, string[]> | null>(null);
   const [generalError, setGeneralError] = useState<string | null>(null);
 
+  // Use a ref to track if this is the first render to avoid double fetch in StrictMode
+  const isFirstRender = useRef(true);
+
   useEffect(() => {
     if (!id) return;
-    setIsLoading(true);
-    studentsService
-      .getById(id)
-      .then((student) => setValues(student))
-      .catch((err) => setGeneralError(err instanceof ApiError ? err.message : "No se pudo cargar el estudiante."))
-      .finally(() => setIsLoading(false));
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      setIsLoading(true);
+      studentsService
+        .getById(id)
+        .then((student) => setValues(student))
+        .catch((err) => setGeneralError(err instanceof ApiError ? err.message : "No se pudo cargar el estudiante."))
+        .finally(() => setIsLoading(false));
+    }
   }, [id]);
 
   function updateField(key: string, value: string | boolean) {
@@ -135,7 +145,7 @@ export default function StudentFormPage() {
 
               <div className="grid gap-1.5">
                 <Label>Nombres <span className="text-destructive">*</span></Label>
-                <Input value={values.firstName} required onChange={(e) => updateField("firstName", e.target.value)} />
+                <Input value={values.firstName } required onChange={(e) => updateField("firstName", e.target.value)} />
                 {fieldError("firstName") && <p className="text-xs text-destructive">{fieldError("firstName")}</p>}
               </div>
 
@@ -147,7 +157,7 @@ export default function StudentFormPage() {
 
               <div className="grid gap-1.5">
                 <Label>DNI <span className="text-destructive">*</span></Label>
-                <Input value={values.dni} required onChange={(e) => updateField("dni", e.target.value)} />
+                <Input type="number" value={values.dni} required onChange={(e) => updateField("dni", e.target.value)} />
                 {fieldError("dni") && <p className="text-xs text-destructive">{fieldError("dni")}</p>}
               </div>
 
@@ -158,14 +168,19 @@ export default function StudentFormPage() {
               </div>
 
               <div className="grid gap-1.5">
+                <Label>Teléfono <span className="text-destructive">*</span></Label>
+                <Input type="number" value={values.phone} required onChange={(e) => updateField("phone", e.target.value)} />
+              </div>
+
+              <div className="grid gap-1.5">
                 <Label>Sexo <span className="text-destructive">*</span></Label>
                 <Select value={values.gender} onValueChange={(v) => updateField("gender", v)}>
                   <SelectTrigger>
                     <SelectValue placeholder="Selecciona" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="male">Masculino</SelectItem>
-                    <SelectItem value="female">Femenino</SelectItem>
+                    <SelectItem value="Masculino">Masculino</SelectItem>
+                    <SelectItem value="Femenino">Femenino</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -195,6 +210,14 @@ export default function StudentFormPage() {
                 <Label>Contacto de emergencia</Label>
                 <Input value={values.emergencyContact} onChange={(e) => updateField("emergencyContact", e.target.value)} />
               </div>
+
+              <label className="col-span-full flex items-center gap-2 text-sm">
+                <Checkbox
+                  checked={Boolean(values.livesWithParents)}
+                  onCheckedChange={(checked) => updateField("livesWithParents", Boolean(checked))}
+                />
+                Vive con sus padres
+              </label>
             </CardContent>
           </Card>
 
@@ -221,7 +244,7 @@ export default function StudentFormPage() {
 
               <div className="grid gap-1.5">
                 <Label>DNI <span className="text-destructive">*</span></Label>
-                <Input
+                <Input type="number"
                   value={safeValues.guardian.dni}
                   onChange={(e) => updateGuardian("dni", e.target.value)}
                 />
@@ -230,7 +253,7 @@ export default function StudentFormPage() {
 
               <div className="grid gap-1.5">
                 <Label>Teléfono <span className="text-destructive">*</span></Label>
-                <Input
+                <Input type="number"
                   value={safeValues.guardian.phone}
                   onChange={(e) => updateGuardian("phone", e.target.value)}
                 />
@@ -247,11 +270,11 @@ export default function StudentFormPage() {
                     <SelectValue placeholder="Selecciona" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Father">Padre</SelectItem>
-                    <SelectItem value="Mother">Madre</SelectItem>
+                    <SelectItem value="Padre">Padre</SelectItem>
+                    <SelectItem value="Madre">Madre</SelectItem>
                     <SelectItem value="Tutor">Tutor</SelectItem>
-                    <SelectItem value="Grandparent">Abuelo(a)</SelectItem>
-                    <SelectItem value="Other">Otro</SelectItem>
+                    <SelectItem value="Abuelo(a)">Abuelo(a)</SelectItem>
+                    <SelectItem value="Otro">Otro</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

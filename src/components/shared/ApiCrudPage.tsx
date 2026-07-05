@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus } from "lucide-react";
+import { Plus, Search } from "lucide-react";
 import { PageHeader } from "./PageHeader";
 import { DataTable } from "./DataTable";
 import { FormDialog } from "./FormDialog";
@@ -7,6 +7,7 @@ import { ConfirmDialog } from "./ConfirmDialog";
 import { Pagination } from "@/components/common/Pagination";
 import { SearchInput } from "@/components/common/SearchInput";
 import { LoadingButton } from "@/components/common/LoadingButton";
+import { Button } from "@/components/ui/button";
 import { useCrudResource } from "@/hooks/useCrudResource";
 import { ApiError } from "@/types/api";
 import type { ColumnDef, FieldDef } from "@/types";
@@ -109,12 +110,12 @@ export function ApiCrudPage<T extends { id: string }, TPayload = Omit<T, "id">>(
         </div>
       )}
 
-       <div className="mb-4 flex items-center gap-2">
-         <SearchInput value={resource.search} onChange={resource.setSearch} placeholder={searchPlaceholder} />
-         <span className="hidden shrink-0 text-sm text-muted-foreground sm:inline">
-           {resource.pagination?.total ?? 0} registro(s)
-         </span>
-       </div>
+      <div className="mb-4 flex items-center justify-end gap-2">
+        <SearchInput value={resource.search} onChange={resource.setSearch} placeholder={searchPlaceholder} />
+        <Button variant="outline" size="icon" aria-label="Buscar" onClick={() => resource.refetch()}>
+          <Search className="h-4 w-4" />
+        </Button>
+      </div>
 
       <DataTable
         columns={columns}
@@ -127,7 +128,10 @@ export function ApiCrudPage<T extends { id: string }, TPayload = Omit<T, "id">>(
         sortBy={resource.sortBy}
         sortDir={resource.sortDir}
         onSort={resource.toggleSort}
+        currentPage={resource.page}
+        itemsPerPage={resource.pagination?.limit ?? 10}
       />
+```
 
       <Pagination pagination={resource.pagination} onPageChange={resource.setPage} disabled={resource.isLoading} />
 

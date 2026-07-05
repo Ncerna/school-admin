@@ -85,8 +85,9 @@ export interface MenuAccess {
 
 export interface Teacher {
   id: string;
-  names: string;
-  surnames: string;
+  // Using firstName and lastName to match API expected keys
+  firstName: string;
+  lastName: string;
   dni: string;
   specialty: string;
   email: string;
@@ -112,6 +113,7 @@ export interface Student {
   lastName: string;
   dni: string;
   email: string;
+  phone: string;
   gender: Gender | "";
   // Optional fields
   country?: string;
@@ -122,10 +124,15 @@ export interface Student {
   status?: Status;
   // Guardian information
   guardian: Guardian;
+  // Lives with parents
+  livesWithParents?: boolean;
 }
 
 // Payload type for creating/updating students (matches API expected keys)
 export type StudentPayload = Omit<Student, "id" | "status">;
+
+// Payload type for creating/updating teachers (matches API expected keys)
+export type TeacherPayload = Omit<Teacher, "id" | "status">;
 
 // Generic table column definition, reused by all modules.
 export interface ColumnDef<T> {

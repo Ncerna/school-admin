@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus } from "lucide-react";
+import { Plus, Search } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { DataTable } from "@/components/shared/DataTable";
@@ -18,11 +18,12 @@ export default function TeachersPage() {
   const [deleteTarget, setDeleteTarget] = useState<Teacher | null>(null);
 
   const columns: ColumnDef<Teacher>[] = [
-    { header: "Nombres", accessor: "names", sortable: true },
-    { header: "Apellidos", accessor: "surnames", sortable: true },
+    { header: "Nombres", accessor: "firstName", sortable: true },
+    { header: "Apellidos", accessor: "lastName", sortable: true },
     { header: "DNI", accessor: "dni" },
     { header: "Especialidad", accessor: "specialty" },
     { header: "Correo", accessor: "email" },
+    { header: "Teléfono", accessor: "phone" },
     { header: "Estado", accessor: "status", render: (item) => <StatusBadge estado={item.status} /> },
   ];
 
@@ -55,12 +56,15 @@ export default function TeachersPage() {
         </div>
       )}
 
-      <div className="mb-4 flex items-center gap-2">
+      <div className="mb-4 flex items-center justify-end gap-2">
         <SearchInput
           value={resource.search}
           onChange={resource.setSearch}
           placeholder="Buscar docente..."
         />
+        <Button variant="outline" size="icon" aria-label="Buscar" onClick={() => resource.refetch()}>
+          <Search className="h-4 w-4" />
+        </Button>
       </div>
 
       <DataTable
@@ -73,6 +77,8 @@ export default function TeachersPage() {
         sortBy={resource.sortBy}
         sortDir={resource.sortDir}
         onSort={resource.toggleSort}
+        currentPage={resource.page}
+        itemsPerPage={resource.pagination?.limit ?? 10}
       />
 
       <Pagination pagination={resource.pagination} onPageChange={resource.setPage} disabled={resource.isLoading} />

@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent, useRef } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import { ArrowLeft, Save } from "lucide-react";
 import { PageHeader } from "@/components/shared/PageHeader";
@@ -10,24 +10,21 @@ import { LoadingButton } from "@/components/common/LoadingButton";
 import { Button } from "@/components/ui/button";
 import { teachersService } from "@/services/teachers.service";
 import { ApiError } from "@/types/api";
-import type { Teacher } from "@/types";
-
-type TeacherPayload = Omit<Teacher, "id">;
+import type { Teacher, TeacherPayload } from "@/types";
 
 const emptyTeacher: TeacherPayload = {
-  names: "",
-  surnames: "",
+  firstName: "",
+  lastName: "",
   dni: "",
   specialty: "",
   email: "",
   phone: "",
-  status: "Activo",
 };
 
 // Map API error field names to local field names
 const errorFieldMap: Record<string, string> = {
-  names: "names",
-  surnames: "surnames",
+  first_name: "firstName",
+  last_name: "lastName",
   dni: "dni",
   email: "email",
   phone: "phone",
@@ -45,14 +42,20 @@ export default function TeacherFormPage() {
   const [errors, setErrors] = useState<Record<string, string[]> | null>(null);
   const [generalError, setGeneralError] = useState<string | null>(null);
 
+  // Use a ref to track if this is the first render to avoid double fetch in StrictMode
+  const isFirstRender = useRef(true);
+
   useEffect(() => {
     if (!id) return;
-    setIsLoading(true);
-    teachersService
-      .getById(id)
-      .then((teacher) => setValues(teacher))
-      .catch((err) => setGeneralError(err instanceof ApiError ? err.message : "No se pudo cargar el docente."))
-      .finally(() => setIsLoading(false));
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      setIsLoading(true);
+      teachersService
+        .getById(id)
+        .then((teacher) => setValues(teacher))
+        .catch((err) => setGeneralError(err instanceof ApiError ? err.message : "No se pudo cargar el docente."))
+        .finally(() => setIsLoading(false));
+    }
   }, [id]);
 
   function updateField(key: string, value: string | boolean) {
@@ -122,19 +125,19 @@ export default function TeacherFormPage() {
 
               <div className="grid gap-1.5">
                 <Label>Nombres <span className="text-destructive">*</span></Label>
-                <Input value={values.names} required onChange={(e) => updateField("names", e.target.value)} />
-                {fieldError("names") && <p className="text-xs text-destructive">{fieldError("names")}</p>}
+                <Input value={values.firstName} required onChange={(e) => updateField("firstName", e.target.value)} />
+                {fieldError("firstName") && <p className="text-xs text-destructive">{fieldError("firstName")}</p>}
               </div>
 
               <div className="grid gap-1.5">
                 <Label>Apellidos <span className="text-destructive">*</span></Label>
-                <Input value={values.surnames} required onChange={(e) => updateField("surnames", e.target.value)} />
-                {fieldError("surnames") && <p className="text-xs text-destructive">{fieldError("surnames")}</p>}
+                <Input value={values.lastName} required onChange={(e) => updateField("lastName", e.target.value)} />
+                {fieldError("lastName") && <p className="text-xs text-destructive">{fieldError("lastName")}</p>}
               </div>
 
               <div className="grid gap-1.5">
                 <Label>DNI <span className="text-destructive">*</span></Label>
-                <Input value={values.dni} required onChange={(e) => updateField("dni", e.target.value)} />
+                <Input type="number" value={values.dni} required onChange={(e) => updateField("dni", e.target.value)} />
                 {fieldError("dni") && <p className="text-xs text-destructive">{fieldError("dni")}</p>}
               </div>
 
@@ -146,7 +149,7 @@ export default function TeacherFormPage() {
 
               <div className="grid gap-1.5">
                 <Label>Teléfono <span className="text-destructive">*</span></Label>
-                <Input value={values.phone} required onChange={(e) => updateField("phone", e.target.value)} />
+                <Input type="number" value={values.phone} required onChange={(e) => updateField("phone", e.target.value)} />
                 {fieldError("phone") && <p className="text-xs text-destructive">{fieldError("phone")}</p>}
               </div>
 
@@ -157,25 +160,13 @@ export default function TeacherFormPage() {
                     <SelectValue placeholder="Selecciona" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Nombrado">Nombrado</SelectItem>
-                    <SelectItem value="Contratado">Contratado</SelectItem>
-                    <SelectItem value="Auxiliar">Auxiliar</SelectItem>
+                    <SelectItem value="Mathematics">Mathematics</SelectItem>
+                    <SelectItem value="Science">Science</SelectItem>
+                    <SelectItem value="Language">Language</SelectItem>
+                    <SelectItem value="History">History</SelectItem>
                   </SelectContent>
                 </Select>
                 {fieldError("specialty") && <p className="text-xs text-destructive">{fieldError("specialty")}</p>}
-              </div>
-
-              <div className="grid gap-1.5">
-                <Label>Estado <span className="text-destructive">*</span></Label>
-                <Select value={values.status} onValueChange={(v) => updateField("status", v)}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Activo">Activo</SelectItem>
-                    <SelectItem value="Inactivo">Inactivo</SelectItem>
-                  </SelectContent>
-                </Select>
               </div>
             </CardContent>
           </Card>

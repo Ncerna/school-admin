@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus } from "lucide-react";
+import { Plus, Search } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { DataTable } from "@/components/shared/DataTable";
@@ -18,15 +18,15 @@ export default function StudentsPage() {
   const [deleteTarget, setDeleteTarget] = useState<Student | null>(null);
 
   const columns: ColumnDef<Student>[] = [
-  { header: "Nombres", accessor: "first_name", sortable: true },
-  { header: "Apellidos", accessor: "last_name", sortable: true },
-  { header: "DNI", accessor: "dni" },
-  { header: "Correo", accessor: "email", sortable: true },
-  { header: "Fecha de nacimiento", accessor: "birth_date" },
-  { header: "Dirección", accessor: "address" },
-  { header: "País", accessor: "country" },
-  { header: "Contacto de emergencia", accessor: "emergency_contact" },
-  { header: "Género", accessor: "gender" },
+    { header: "Nombres", accessor: "firstName", sortable: true },
+    { header: "Apellidos", accessor: "lastName", sortable: true },
+    { header: "DNI", accessor: "dni" },
+    { header: "Correo", accessor: "email", sortable: true },
+    { header: "Fecha de nacimiento", accessor: "birthDate" },
+    { header: "Dirección", accessor: "address" },
+    { header: "País", accessor: "country" },
+    { header: "Contacto de emergencia", accessor: "emergencyContact" },
+    { header: "Género", accessor: "gender" },
   ];
 
   async function handleDelete() {
@@ -58,12 +58,15 @@ export default function StudentsPage() {
         </div>
       )}
 
-      <div className="mb-4 flex items-center gap-2">
+      <div className="mb-4 flex items-center justify-end gap-2">
         <SearchInput
           value={resource.search}
           onChange={resource.setSearch}
           placeholder="Buscar por nombres, apellidos o DNI..."
         />
+        <Button variant="outline" size="icon" aria-label="Buscar" onClick={() => resource.refetch()}>
+          <Search className="h-4 w-4" />
+        </Button>
       </div>
 
       <DataTable
@@ -77,7 +80,10 @@ export default function StudentsPage() {
         sortBy={resource.sortBy}
         sortDir={resource.sortDir}
         onSort={resource.toggleSort}
+        currentPage={resource.page}
+        itemsPerPage={resource.pagination?.limit ?? 10}
       />
+```
 
       <Pagination pagination={resource.pagination} onPageChange={resource.setPage} disabled={resource.isLoading} />
 

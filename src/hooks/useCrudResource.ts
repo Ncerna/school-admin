@@ -46,7 +46,7 @@ export function useCrudResource<TEntity extends { id: string }, TPayload = Parti
       const result = await api.list({
         page,
         limit,
-        search: debouncedSearch || undefined,
+        search: debouncedSearch,
         sortBy,
         sortDir,
         ...options?.extraParams,
@@ -75,7 +75,7 @@ export function useCrudResource<TEntity extends { id: string }, TPayload = Parti
       fetchPage();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page, limit, debouncedSearch, sortBy, sortDir, options?.extraParams]);
+  }, []);
 
   // Reset to page 1 whenever the search term changes so results aren't empty.
   useEffect(() => {
