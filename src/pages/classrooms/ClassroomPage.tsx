@@ -16,8 +16,8 @@ const fields: FieldDef<Classroom>[] = [
     type: "select",
     required: true,
     options: [
-      { label: "Activo", value: "Activo" },
-      { label: "Inactivo", value: "Inactivo" },
+      { label: "Activo", value: "ACTIVE" },
+      { label: "Inactivo", value: "INACTIVE" },
     ],
   },
 ];

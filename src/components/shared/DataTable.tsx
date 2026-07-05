@@ -52,7 +52,6 @@ export function DataTable<T extends { id: string }>({
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-[50px]">#</TableHead>
               {columns.map((col) => (
                 <TableHead key={String(col.accessor)} className={col.className}>
                   {col.header}
@@ -64,7 +63,6 @@ export function DataTable<T extends { id: string }>({
           <TableBody>
             {Array.from({ length: 5 }).map((_, rowIndex) => (
               <TableRow key={rowIndex} className="h-10">
-                <TableCell className="py-2 font-mono text-sm">{currentPage * itemsPerPage - itemsPerPage + rowIndex + 1}</TableCell>
                 {columns.map((col) => (
                   <TableCell key={String(col.accessor)} className="py-2">
                     <Skeleton className="h-3 w-full max-w-[160px]" />

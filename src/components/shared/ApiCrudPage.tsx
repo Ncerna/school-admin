@@ -131,7 +131,7 @@ export function ApiCrudPage<T extends { id: string }, TPayload = Omit<T, "id">>(
         currentPage={resource.page}
         itemsPerPage={resource.pagination?.limit ?? 10}
       />
-```
+
 
       <Pagination pagination={resource.pagination} onPageChange={resource.setPage} disabled={resource.isLoading} />
 

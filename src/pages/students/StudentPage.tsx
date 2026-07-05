@@ -22,10 +22,7 @@ export default function StudentsPage() {
     { header: "Apellidos", accessor: "lastName", sortable: true },
     { header: "DNI", accessor: "dni" },
     { header: "Correo", accessor: "email", sortable: true },
-    { header: "Fecha de nacimiento", accessor: "birthDate" },
-    { header: "Dirección", accessor: "address" },
-    { header: "País", accessor: "country" },
-    { header: "Contacto de emergencia", accessor: "emergencyContact" },
+  
     { header: "Género", accessor: "gender" },
   ];
 
@@ -83,7 +80,7 @@ export default function StudentsPage() {
         currentPage={resource.page}
         itemsPerPage={resource.pagination?.limit ?? 10}
       />
-```
+
 
       <Pagination pagination={resource.pagination} onPageChange={resource.setPage} disabled={resource.isLoading} />
 
