@@ -7,6 +7,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
+  DialogBody,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { LoadingButton } from "@/components/common/LoadingButton";
@@ -68,13 +69,13 @@ export function FormDialog<T extends Record<string, any>>({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} className="flex flex-col h-full">
           <DialogHeader>
             <DialogTitle>{title}</DialogTitle>
             {description && <DialogDescription>{description}</DialogDescription>}
           </DialogHeader>
 
-          <div className="grid gap-4 py-4">
+          <DialogBody className="grid gap-4 sm:grid-cols-2">
             {fields.map((field) => {
               const name = String(field.name);
               const value = values[field.name] ?? "";
@@ -138,7 +139,7 @@ export function FormDialog<T extends Record<string, any>>({
                 </div>
               );
             })}
-          </div>
+          </DialogBody>
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isSubmitting}>

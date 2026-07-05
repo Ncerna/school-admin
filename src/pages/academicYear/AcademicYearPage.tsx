@@ -11,6 +11,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
+  DialogBody,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,51 +23,51 @@ import { Pagination } from "@/components/common/Pagination";
 import { SearchInput } from "@/components/common/SearchInput";
 import { useCrudResource } from "@/hooks/useCrudResource";
 import { useLookupOptions } from "@/hooks/useLookupOptions";
-import { academicYearsService } from "@/services/academic-years.service";
+import { AcademicYearsService } from "@/services/academic-years.service";
 import { shiftsService } from "@/services/shifts.service";
 import { ApiError } from "@/types/api";
-import type { AnioAcademico, ColumnDef, Turno } from "@/types";
+import type { AcademicYear, ColumnDef, Shift } from "@/types";
 
-type AnioAcademicoPayload = Omit<AnioAcademico, "id">;
+type AcademicYearPayload = Omit<AcademicYear, "id">;
 
-const emptyItem: AnioAcademicoPayload = {
-  nombre: "",
-  fechaInicio: "",
-  fechaFin: "",
-  estado: "Activo",
-  estadoMatricula: "Activo",
-  turnoIds: [],
+const emptyItem: AcademicYearPayload = {
+  name: "",
+  startDate: "",
+  endDate: "",
+  status: "Activo",
+  enrollmentStatus: "Activo",
+  shiftIds: [],
 };
 
-export default function AnioAcademicoPage() {
-  const resource = useCrudResource<AnioAcademico, AnioAcademicoPayload>(academicYearsService);
-  const { options: turnoOptions } = useLookupOptions<Turno>(shiftsService, (t) => ({
-    label: t.nombre,
+export default function AcademicYearPage() {
+  const resource = useCrudResource<AcademicYear, AcademicYearPayload>(AcademicYearsService);
+  const { options: shiftOptions } = useLookupOptions<Shift>(shiftsService, (t) => ({
+    label: t.name,
     value: t.id,
   }));
 
   const [formOpen, setFormOpen] = useState(false);
-  const [editingItem, setEditingItem] = useState<AnioAcademico | null>(null);
-  const [values, setValues] = useState<AnioAcademicoPayload>(emptyItem);
-  const [deleteTarget, setDeleteTarget] = useState<AnioAcademico | null>(null);
+  const [editingItem, setEditingItem] = useState<AcademicYear | null>(null);
+  const [values, setValues] = useState<AcademicYearPayload>(emptyItem);
+  const [deleteTarget, setDeleteTarget] = useState<AcademicYear | null>(null);
   const [activatingId, setActivatingId] = useState<string | null>(null);
 
   useEffect(() => {
     if (formOpen) setValues(editingItem ?? emptyItem);
   }, [formOpen, editingItem]);
 
-  const columns: ColumnDef<AnioAcademico>[] = [
-    { header: "Año académico", accessor: "nombre", sortable: true },
-    { header: "Inicio", accessor: "fechaInicio" },
-    { header: "Fin", accessor: "fechaFin" },
-    { header: "Matrícula", accessor: "estadoMatricula", render: (item) => <StatusBadge estado={item.estadoMatricula} /> },
+  const columns: ColumnDef<AcademicYear>[] = [
+    { header: "Año académico", accessor: "name", sortable: true },
+    { header: "Inicio", accessor: "startDate" },
+    { header: "Fin", accessor: "endDate" },
+    { header: "Matrícula", accessor: "enrollmentStatus", render: (item) => <StatusBadge estado={item.enrollmentStatus} /> },
     {
       header: "Estado",
-      accessor: "estado",
+      accessor: "status",
       render: (item) => (
         <div className="flex items-center gap-2">
-          <StatusBadge estado={item.estado} />
-          {item.estado !== "Activo" && (
+          <StatusBadge estado={item.status} />
+          {item.status !== "Activo" && (
             <LoadingButton
               size="sm"
               variant="outline"
@@ -74,7 +75,7 @@ export default function AnioAcademicoPage() {
               onClick={async () => {
                 setActivatingId(item.id);
                 try {
-                  await academicYearsService.activate(item.id);
+                  await AcademicYearsService.activate(item.id);
                   await resource.refetch();
                 } finally {
                   setActivatingId(null);
@@ -90,10 +91,10 @@ export default function AnioAcademicoPage() {
     },
   ];
 
-  function toggleTurno(id: string) {
+  function toggleShift(id: string) {
     setValues((prev) => ({
       ...prev,
-      turnoIds: prev.turnoIds.includes(id) ? prev.turnoIds.filter((t) => t !== id) : [...prev.turnoIds, id],
+      shiftIds: prev.shiftIds.includes(id) ? prev.shiftIds.filter((t) => t !== id) : [...prev.shiftIds, id],
     }));
   }
 
@@ -168,66 +169,68 @@ export default function AnioAcademicoPage() {
 
       <Dialog open={formOpen} onOpenChange={setFormOpen}>
         <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{editingItem ? "Editar año académico" : "Nuevo año académico"}</DialogTitle>
-            <DialogDescription>Selecciona uno o varios turnos activos para este año.</DialogDescription>
-          </DialogHeader>
+          <div className="flex flex-col h-full">
+            <DialogHeader>
+              <DialogTitle>{editingItem ? "Editar año académico" : "Nuevo año académico"}</DialogTitle>
+              <DialogDescription>Selecciona uno o varios turnos activos para este año.</DialogDescription>
+            </DialogHeader>
 
-          <div className="grid gap-4 py-4">
-            <div className="grid gap-1.5">
-              <Label>Nombre</Label>
-              <Input value={values.nombre} onChange={(e) => setValues((p) => ({ ...p, nombre: e.target.value }))} placeholder="Ej. 2026" />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
+            <DialogBody className="grid gap-4">
               <div className="grid gap-1.5">
-                <Label>Fecha de inicio</Label>
-                <Input type="date" value={values.fechaInicio} onChange={(e) => setValues((p) => ({ ...p, fechaInicio: e.target.value }))} />
+                <Label>Nombre</Label>
+                <Input value={values.name} onChange={(e) => setValues((p) => ({ ...p, name: e.target.value }))} placeholder="Ej. 2026" />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-1.5">
+                  <Label>Fecha de inicio</Label>
+                  <Input type="date" value={values.startDate} onChange={(e) => setValues((p) => ({ ...p, startDate: e.target.value }))} />
+                </div>
+                <div className="grid gap-1.5">
+                  <Label>Fecha de finalización</Label>
+                  <Input type="date" value={values.endDate} onChange={(e) => setValues((p) => ({ ...p, endDate: e.target.value }))} />
+                </div>
               </div>
               <div className="grid gap-1.5">
-                <Label>Fecha de finalización</Label>
-                <Input type="date" value={values.fechaFin} onChange={(e) => setValues((p) => ({ ...p, fechaFin: e.target.value }))} />
+                <Label>Estado de matrícula</Label>
+                <Select value={values.enrollmentStatus} onValueChange={(v) => setValues((p) => ({ ...p, enrollmentStatus: v as "Activo" | "Inactivo" }))}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Activo">Activo</SelectItem>
+                    <SelectItem value="Inactivo">Inactivo</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
-            </div>
-            <div className="grid gap-1.5">
-              <Label>Estado de matrícula</Label>
-              <Select value={values.estadoMatricula} onValueChange={(v) => setValues((p) => ({ ...p, estadoMatricula: v as "Activo" | "Inactivo" }))}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Activo">Activo</SelectItem>
-                  <SelectItem value="Inactivo">Inactivo</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="grid gap-1.5">
-              <Label>Turnos activos</Label>
-              <div className="flex flex-col gap-2 rounded-md border p-3">
-                {turnoOptions.map((option) => (
-                  <label key={option.value} className="flex items-center gap-2 text-sm">
-                    <Checkbox
-                      checked={values.turnoIds.includes(option.value)}
-                      onCheckedChange={() => toggleTurno(option.value)}
-                    />
-                    {option.label}
-                  </label>
-                ))}
-                {turnoOptions.length === 0 && (
-                  <p className="text-xs text-muted-foreground">No hay turnos registrados todavía.</p>
-                )}
+              <div className="grid gap-1.5">
+                <Label>Turnos activos</Label>
+                <div className="flex max-h-60 flex-col gap-2 overflow-y-auto rounded-md border p-3">
+                  {shiftOptions.map((option) => (
+                    <label key={option.value} className="flex items-center gap-2 text-sm">
+                      <Checkbox
+                        checked={values.shiftIds.includes(option.value)}
+                        onCheckedChange={() => toggleShift(option.value)}
+                      />
+                      {option.label}
+                    </label>
+                  ))}
+                  {shiftOptions.length === 0 && (
+                    <p className="text-xs text-muted-foreground">No hay turnos registrados todavía.</p>
+                  )}
+                </div>
               </div>
-            </div>
+            </DialogBody>
+
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setFormOpen(false)} disabled={resource.isSaving}>
+                Cancelar
+              </Button>
+              <LoadingButton isLoading={resource.isSaving} onClick={handleSubmit}>
+                <Save className="h-4 w-4" />
+                {editingItem ? "Guardar cambios" : "Crear"}
+              </LoadingButton>
+            </DialogFooter>
           </div>
-
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setFormOpen(false)} disabled={resource.isSaving}>
-              Cancelar
-            </Button>
-            <LoadingButton isLoading={resource.isSaving} onClick={handleSubmit}>
-              <Save className="h-4 w-4" />
-              {editingItem ? "Guardar cambios" : "Crear"}
-            </LoadingButton>
-          </DialogFooter>
         </DialogContent>
       </Dialog>
 

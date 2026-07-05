@@ -49,7 +49,7 @@ export default function PortalPage() {
         <section id="inicio" className="mx-auto max-w-6xl px-4 py-16 text-center">
           <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">Bienvenidos al Colegio San Martín</h1>
           <p className="mx-auto mt-4 max-w-2xl text-muted-foreground">
-            Formando estudiantes con excelencia académica y valores para el futuro. Conoce nuestras noticias,
+            Formando Students con excelencia académica y valores para el futuro. Conoce nuestras noticias,
             eventos y logros institucionales.
           </p>
         </section>

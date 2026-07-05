@@ -9,6 +9,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
+  DialogBody,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -18,7 +19,7 @@ import { SearchInput } from "@/components/common/SearchInput";
 import { useCrudResource } from "@/hooks/useCrudResource";
 import { rolesService } from "@/services/roles.service";
 import { ApiError } from "@/types/api";
-import type { ColumnDef, MenuAcceso, Rol } from "@/types";
+import type { ColumnDef, MenuAccess, Role } from "@/types";
 
 // Los roles se listan pero no se crean/editan/eliminan desde esta pantalla
 // (RF-HU-006 solo pide gestionar accesos), así que reutilizamos el hook de
@@ -35,11 +36,11 @@ const noopApi = {
   },
 };
 
-export default function AccesosPage() {
-  const resource = useCrudResource<Rol>({ list: rolesService.list, ...noopApi });
+export default function AccessPage() {
+  const resource = useCrudResource<Role>({ list: rolesService.list, ...noopApi });
 
-  const [selectedRole, setSelectedRole] = useState<Rol | null>(null);
-  const [menus, setMenus] = useState<MenuAcceso[]>([]);
+  const [selectedRole, setSelectedRole] = useState<Role | null>(null);
+  const [menus, setMenus] = useState<MenuAccess[]>([]);
   const [isLoadingMenus, setIsLoadingMenus] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -58,7 +59,7 @@ export default function AccesosPage() {
   }, [selectedRole]);
 
   function toggleMenu(id: string) {
-    setMenus((prev) => prev.map((m) => (m.id === id ? { ...m, asignado: !m.asignado } : m)));
+    setMenus((prev) => prev.map((m) => (m.id === id ? { ...m, assigned: !m.assigned } : m)));
   }
 
   async function handleSave() {
@@ -66,7 +67,7 @@ export default function AccesosPage() {
     setIsSaving(true);
     setError(null);
     try {
-      const menuIds = menus.filter((m) => m.asignado).map((m) => m.id);
+      const menuIds = menus.filter((m) => m.assigned).map((m) => m.id);
       await rolesService.updateAccessList(selectedRole.id, menuIds);
       setSuccessMessage("Accesos actualizados correctamente.");
     } catch (err) {
@@ -76,9 +77,9 @@ export default function AccesosPage() {
     }
   }
 
-  const columns: ColumnDef<Rol>[] = [
-    { header: "Rol", accessor: "nombre", sortable: true },
-    { header: "Descripción", accessor: "descripcion", render: (item) => item.descripcion || "—" },
+  const columns: ColumnDef<Role>[] = [
+    { header: "Rol", accessor: "name", sortable: true },
+    { header: "Descripción", accessor: "description", render: (item) => item.description || "—" },
     {
       header: "Acción",
       accessor: "id",
@@ -112,38 +113,43 @@ export default function AccesosPage() {
 
       <Dialog open={!!selectedRole} onOpenChange={(open) => !open && setSelectedRole(null)}>
         <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Accesos de "{selectedRole?.nombre}"</DialogTitle>
-            <DialogDescription>Marca los menús a los que este rol podrá acceder.</DialogDescription>
-          </DialogHeader>
+          <div className="flex flex-col h-full">
+            <DialogHeader>
+              <DialogTitle>Accesos de "{selectedRole?.name}"</DialogTitle>
+              <DialogDescription>Marca los menús a los que este rol podrá acceder.</DialogDescription>
+            </DialogHeader>
 
-          {error && <p className="text-sm text-destructive">{error}</p>}
-          {successMessage && <p className="text-sm text-emerald-600">{successMessage}</p>}
+            {error && <p className="text-sm text-destructive px-6">{error}</p>}
+            {successMessage && <p className="text-sm text-emerald-600 px-6">{successMessage}</p>}
 
-          <div className="flex max-h-80 flex-col gap-2 overflow-y-auto rounded-md border p-3">
-            {isLoadingMenus ? (
-              <p className="text-sm text-muted-foreground">Cargando menús...</p>
-            ) : (
-              menus.map((menu) => (
-                <label key={menu.id} className="flex items-center gap-2 text-sm">
-                  <Checkbox checked={menu.asignado} onCheckedChange={() => toggleMenu(menu.id)} />
-                  {menu.nombre}
-                </label>
-              ))
-            )}
+            <DialogBody>
+              <div className="flex flex-col gap-2 rounded-md border p-3">
+                {isLoadingMenus ? (
+                  <p className="text-sm text-muted-foreground">Cargando menús...</p>
+                ) : (
+                  menus.map((menu) => (
+                    <label key={menu.id} className="flex items-center gap-2 text-sm">
+                      <Checkbox checked={menu.assigned} onCheckedChange={() => toggleMenu(menu.id)} />
+                      {menu.name}
+                    </label>
+                  ))
+                )}
+              </div>
+            </DialogBody>
+
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setSelectedRole(null)} disabled={isSaving}>
+                Cerrar
+              </Button>
+              <LoadingButton isLoading={isSaving} onClick={handleSave}>
+                <Save className="h-4 w-4" />
+                Guardar cambios
+              </LoadingButton>
+            </DialogFooter>
           </div>
-
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setSelectedRole(null)} disabled={isSaving}>
-              Cerrar
-            </Button>
-            <LoadingButton isLoading={isSaving} onClick={handleSave}>
-              <Save className="h-4 w-4" />
-              Guardar cambios
-            </LoadingButton>
-          </DialogFooter>
         </DialogContent>
       </Dialog>
+```
     </div>
   );
 }

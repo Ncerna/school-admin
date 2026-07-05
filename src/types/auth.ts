@@ -17,6 +17,34 @@ export interface MenuPermission {
   acciones: string[];
 }
 
+// API response types (snake_case from backend)
+export interface ApiUser {
+  id: number;
+  username: string;
+  email: string;
+  status: string;
+  role: string;
+}
+
+export interface ApiMenu {
+  id: number;
+  name: string;
+  icon: string;
+  route: string;
+  parent_id: number | null;
+  order: number;
+  children: ApiMenu[];
+}
+
+export interface ApiLoginResponse {
+  access_token: string;
+  refresh_token: string;
+  access_token_expires_at: string;
+  user: ApiUser;
+  menus: ApiMenu[];
+  permissions: string[];
+}
+
 export interface LoginPayload {
   identifier: string; // usuario o correo
   password: string;

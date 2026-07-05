@@ -19,7 +19,7 @@ export const ENDPOINTS = {
   grades: "/grades",
   courses: "/courses",
   shifts: "/shifts",
-  academicYears: "/academic-years",
+  AcademicYears: "/academic-years",
   evaluationTypes: "/evaluation-types",
   roles: "/roles",
   menus: "/menus",

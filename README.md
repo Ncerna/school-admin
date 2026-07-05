@@ -52,7 +52,7 @@ centralizado** (`src/lib/api-client.ts`):
   cuando `success` es `false`, con los `errors` de validación del backend
   disponibles para mostrarlos en los formularios.
 
-Cada módulo (estudiantes, docentes, aulas, grados, cursos, turnos, años
+Cada módulo (Students, Teachers, Classrooms, Grades, Courses, Shifts, años
 académicos, tipos de evaluación, roles) tiene su propio **servicio**
 (`src/services/*.service.ts`), la mayoría generado con la fábrica
 `createCrudService` (`src/lib/crud-service.ts`) para no repetir
@@ -68,10 +68,10 @@ src/
 │   ├── endpoints.ts      # Único lugar con las rutas del backend
 │   ├── token-storage.ts  # Persistencia de tokens/usuario/menú (localStorage)
 │   └── utils.ts
-├── services/             # Un archivo por recurso (students, teachers, classrooms, ...)
+├── services/             # Un archivo por reCourse (students, teachers, classrooms, ...)
 ├── hooks/
 │   ├── useCrudResource.ts   # Paginación + búsqueda (debounced) + orden + CRUD con loading states
-│   ├── useLookupOptions.ts  # Carga catálogos (nivel, aula, turno...) para <Select>
+│   ├── useLookupOptions.ts  # Carga catálogos (Level, Classroom, Shift...) para <Select>
 │   ├── useSessionMonitor.ts # Detecta cuándo el Access Token está por expirar
 │   └── useDebounce.ts
 ├── context/AuthContext.tsx  # Sesión: login, logout, escucha auth:session-expired
@@ -87,15 +87,15 @@ src/
 │   ├── auth/LoginPage.tsx                 # RF-HU-007 Login
 │   ├── auth/ActivateAccountPage.tsx       # RF-HU-004 Activación de cuenta
 │   ├── auth/ActivationStatusPage.tsx      # RF-HU-004 Listado de estados de activación
-│   ├── estudiantes/EstudiantesPage.tsx    # RF-HU-003 Listado (tabla + búsqueda + orden)
-│   ├── estudiantes/EstudianteFormPage.tsx # RF-HU-003 Pantalla dedicada crear/editar (no modal)
-│   ├── docentes/DocentesPage.tsx          # RF-HU-005
+│   ├── Students/StudentsPage.tsx    # RF-HU-003 Listado (tabla + búsqueda + orden)
+│   ├── Students/StudentFormPage.tsx # RF-HU-003 Pantalla dedicada crear/editar (no modal)
+│   ├── Teachers/TeachersPage.tsx          # RF-HU-005
 │   ├── accesos/AccesosPage.tsx            # RF-HU-006 Gestión de accesos por rol
-│   ├── niveles/NivelesPage.tsx
-│   ├── aulas/AulasPage.tsx                # RF-HU-014
-│   ├── grados/GradosPage.tsx              # RF-HU-015
-│   ├── cursos/CursosPage.tsx              # RF-HU-016
-│   ├── turnos/TurnosPage.tsx              # RF-HU-009
+│   ├── Leveles/LevelesPage.tsx
+│   ├── Classrooms/ClassroomsPage.tsx                # RF-HU-014
+│   ├── Grades/GradesPage.tsx              # RF-HU-015
+│   ├── Courses/CoursesPage.tsx              # RF-HU-016
+│   ├── Shifts/ShiftsPage.tsx              # RF-HU-009
 │   ├── anio-academico/AnioAcademicoPage.tsx # RF-HU-010
 │   └── tipos-evaluacion/TiposEvaluacionPage.tsx # RF-HU-011
 ├── types/
@@ -112,7 +112,7 @@ src/
   `lucide-react` acorde a su acción.
 - **Loading State tras el clic**: todo botón de acción pasa por
   `LoadingButton` (`src/components/common/LoadingButton.tsx`), que se
-  deshabilita y muestra un spinner mientras la petición está en curso.
+  deshabilita y muestra un spinner mientras la petición está en Course.
   Las tablas también muestran un *skeleton* mientras cargan y un spinner
   por fila mientras se elimina un registro puntual.
 - **Componentes reutilizables**: `Pagination`, `SearchInput`, `DataTable`
@@ -130,7 +130,7 @@ src/
    export const nuevoService = createCrudService<Nuevo>(ENDPOINTS.nuevo);
    ```
 3. Crea `src/pages/nuevo/NuevoPage.tsx` siguiendo el patrón de
-   `TurnosPage.tsx` (columnas + campos + `<ApiCrudPage />`).
+   `ShiftsPage.tsx` (columnas + campos + `<ApiCrudPage />`).
 4. Agrega la ruta en `App.tsx` y el ítem en
    `src/components/layout/nav-items.ts`.
 
@@ -146,15 +146,15 @@ src/
 
 Se implementaron: Portal Institucional (RF-HU-008), Autenticación con
 monitoreo/renovación de sesión (RF-HU-007), Activación de cuenta y listado
-de estados (RF-HU-004), Estudiantes con pantalla dedicada (RF-HU-003),
-Docentes (RF-HU-005), Accesos por rol (RF-HU-006), Turnos (RF-HU-009),
-Años académicos (RF-HU-010), Tipos de evaluación (RF-HU-011), Aulas
-(RF-HU-014), Grados (RF-HU-015) y Cursos (RF-HU-016), todos sobre la
+de estados (RF-HU-004), Students con pantalla dedicada (RF-HU-003),
+Teachers (RF-HU-005), Accesos por rol (RF-HU-006), Shifts (RF-HU-009),
+Años académicos (RF-HU-010), Tipos de evaluación (RF-HU-011), Classrooms
+(RF-HU-014), Grades (RF-HU-015) y Courses (RF-HU-016), todos sobre la
 infraestructura centralizada descrita arriba.
 
 Quedan pendientes (mismo patrón, listos para replicar rápidamente):
-generación de Períodos de Evaluación (RF-HU-012), Asignación de Cursos a
-Grados (RF-HU-016b), Datos del Colegio con carga de logo/banner
+generación de Períodos de Evaluación (RF-HU-012), Asignación de Courses a
+Grades (RF-HU-016b), Datos del Colegio con carga de logo/banner
 (RF-HU-017) y Gestión de Eventos y Publicaciones (RF-HU-018), por requerir
 UI a medida (matrices de selección, generación automática de tablas, carga
 de archivos) fuera del alcance de esta iteración.

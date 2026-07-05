@@ -3,24 +3,39 @@ import { AuthProvider } from "@/context/AuthContext";
 import { ProtectedRoute } from "@/components/common/ProtectedRoute";
 import { PublicOnlyRoute } from "@/components/common/PublicOnlyRoute";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
+import { Suspense, lazy } from "react";
 
-import PortalPage from "@/pages/portal/PortalPage";
-import LoginPage from "@/pages/auth/LoginPage";
-import ActivateAccountPage from "@/pages/auth/ActivateAccountPage";
-import ActivationStatusPage from "@/pages/auth/ActivationStatusPage";
+// Lazy load pages for code splitting
+const PortalPage = lazy(() => import("@/pages/portal/PortalPage"));
+const LoginPage = lazy(() => import("@/pages/auth/LoginPage"));
+const ActivateAccountPage = lazy(() => import("@/pages/auth/ActivateAccountPage"));
+const ActivationStatusPage = lazy(() => import("@/pages/auth/ActivationStatusPage"));
 
-import Dashboard from "@/pages/Dashboard";
-import EstudiantesPage from "@/pages/estudiantes/EstudiantesPage";
-import EstudianteFormPage from "@/pages/estudiantes/EstudianteFormPage";
-import DocentesPage from "@/pages/docentes/DocentesPage";
-import NivelesPage from "@/pages/niveles/NivelesPage";
-import AulasPage from "@/pages/aulas/AulasPage";
-import GradosPage from "@/pages/grados/GradosPage";
-import CursosPage from "@/pages/cursos/CursosPage";
-import TurnosPage from "@/pages/turnos/TurnosPage";
-import AnioAcademicoPage from "@/pages/anio-academico/AnioAcademicoPage";
-import TiposEvaluacionPage from "@/pages/tipos-evaluacion/TiposEvaluacionPage";
-import AccesosPage from "@/pages/accesos/AccesosPage";
+const Dashboard = lazy(() => import("@/pages/Dashboard"));
+const StudentsPage = lazy(() => import("@/pages/students/StudentPage"));
+const StudentFormPage = lazy(() => import("@/pages/students/StudentFormPage"));
+const TeachersPage = lazy(() => import("@/pages/teachers/Teacher"));
+const TeacherFormPage = lazy(() => import("@/pages/teachers/TeacherFormPage"));
+const LevelsPage = lazy(() => import("@/pages/levels/LevelPage"));
+const ClassroomsPage = lazy(() => import("@/pages/classrooms/ClassroomPage"));
+const GradesPage = lazy(() => import("@/pages/grades/GradePage"));
+const CoursesPage = lazy(() => import("@/pages/courses/CoursePage"));
+const ShiftsPage = lazy(() => import("@/pages/shifts/ShiftPage"));
+const AcademicYearPage = lazy(() => import("@/pages/academicYear/AcademicYearPage"));
+const EvaluationTypePage = lazy(() => import("@/pages/evaluationType/EvaluationTypePage"));
+const AccessPage = lazy(() => import("@/pages/access/AccessPage"));
+
+// Loading fallback component
+function PageLoader() {
+  return (
+    <div className="flex h-screen w-full items-center justify-center">
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
+        <p className="text-sm text-muted-foreground">Cargando...</p>
+      </div>
+    </div>
+  );
+}
 
 export default function App() {
   return (
@@ -29,30 +44,109 @@ export default function App() {
         <Routes>
           {/* Rutas públicas: portal institucional y autenticación (RF-HU-008, RF-HU-007, RF-HU-004) */}
           <Route element={<PublicOnlyRoute />}>
-            <Route path="/" element={<PortalPage />} />
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/activar-cuenta" element={<ActivateAccountPage />} />
+            <Route path="/" element={
+              <Suspense fallback={<PageLoader />}>
+                <PortalPage />
+              </Suspense>
+            } />
+            <Route path="/login" element={
+              <Suspense fallback={<PageLoader />}>
+                <LoginPage />
+              </Suspense>
+            } />
+            <Route path="/activar-cuenta" element={
+              <Suspense fallback={<PageLoader />}>
+                <ActivateAccountPage />
+              </Suspense>
+            } />
           </Route>
 
           {/* Rutas protegidas: requieren sesión activa */}
           <Route element={<ProtectedRoute />}>
             <Route element={<DashboardLayout />}>
-              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/dashboard" element={
+                <Suspense fallback={<PageLoader />}>
+                  <Dashboard />
+                </Suspense>
+              } />
 
-              <Route path="/estudiantes" element={<EstudiantesPage />} />
-              <Route path="/estudiantes/nuevo" element={<EstudianteFormPage />} />
-              <Route path="/estudiantes/:id/editar" element={<EstudianteFormPage />} />
+              <Route path="/estudiantes" element={
+                <Suspense fallback={<PageLoader />}>
+                  <StudentsPage />
+                </Suspense>
+              } />
+              <Route path="/estudiantes/nuevo" element={
+                <Suspense fallback={<PageLoader />}>
+                  <StudentFormPage />
+                </Suspense>
+              } />
+              <Route path="/estudiantes/:id/editar" element={
+                <Suspense fallback={<PageLoader />}>
+                  <StudentFormPage />
+                </Suspense>
+              } />
 
-              <Route path="/docentes" element={<DocentesPage />} />
-              <Route path="/niveles" element={<NivelesPage />} />
-              <Route path="/aulas" element={<AulasPage />} />
-              <Route path="/grados" element={<GradosPage />} />
-              <Route path="/cursos" element={<CursosPage />} />
-              <Route path="/turnos" element={<TurnosPage />} />
-              <Route path="/anio-academico" element={<AnioAcademicoPage />} />
-              <Route path="/tipos-evaluacion" element={<TiposEvaluacionPage />} />
-              <Route path="/accesos" element={<AccesosPage />} />
-              <Route path="/activacion-cuentas" element={<ActivationStatusPage />} />
+              <Route path="/docentes" element={
+                <Suspense fallback={<PageLoader />}>
+                  <TeachersPage />
+                </Suspense>
+              } />
+              <Route path="/docentes/nuevo" element={
+                <Suspense fallback={<PageLoader />}>
+                  <TeacherFormPage />
+                </Suspense>
+              } />
+              <Route path="/docentes/:id/editar" element={
+                <Suspense fallback={<PageLoader />}>
+                  <TeacherFormPage />
+                </Suspense>
+              } />
+
+              <Route path="/niveles" element={
+                <Suspense fallback={<PageLoader />}>
+                  <LevelsPage />
+                </Suspense>
+              } />
+              <Route path="/aulas" element={
+                <Suspense fallback={<PageLoader />}>
+                  <ClassroomsPage />
+                </Suspense>
+              } />
+              <Route path="/grados" element={
+                <Suspense fallback={<PageLoader />}>
+                  <GradesPage />
+                </Suspense>
+              } />
+              <Route path="/cursos" element={
+                <Suspense fallback={<PageLoader />}>
+                  <CoursesPage />
+                </Suspense>
+              } />
+              <Route path="/turnos" element={
+                <Suspense fallback={<PageLoader />}>
+                  <ShiftsPage />
+                </Suspense>
+              } />
+              <Route path="/anio-academico" element={
+                <Suspense fallback={<PageLoader />}>
+                  <AcademicYearPage />
+                </Suspense>
+              } />
+              <Route path="/tipos-evaluacion" element={
+                <Suspense fallback={<PageLoader />}>
+                  <EvaluationTypePage />
+                </Suspense>
+              } />
+              <Route path="/accesos" element={
+                <Suspense fallback={<PageLoader />}>
+                  <AccessPage />
+                </Suspense>
+              } />
+              <Route path="/activacion-cuentas" element={
+                <Suspense fallback={<PageLoader />}>
+                  <ActivationStatusPage />
+                </Suspense>
+              } />
             </Route>
           </Route>
         </Routes>

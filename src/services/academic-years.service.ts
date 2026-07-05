@@ -3,9 +3,9 @@ import { ENDPOINTS } from "@/lib/endpoints";
 import { apiClient } from "@/lib/api-client";
 import type { AnioAcademico } from "@/types";
 
-const base = createCrudService<AnioAcademico>(ENDPOINTS.academicYears);
+const base = createCrudService<AnioAcademico>(ENDPOINTS.AcademicYears);
 
-export const academicYearsService = {
+export const AcademicYearsService = {
   ...base,
-  activate: (id: string) => apiClient.patch<AnioAcademico>(`${ENDPOINTS.academicYears}/${id}/activate`),
+  activate: (id: string) => apiClient.patch<AnioAcademico>(`${ENDPOINTS.AcademicYears}/${id}/activate`),
 };

@@ -1,5 +1,5 @@
 import { createCrudService } from "@/lib/crud-service";
 import { ENDPOINTS } from "@/lib/endpoints";
-import type { Grado } from "@/types";
+import type { Grade } from "@/types";
 
-export const gradesService = createCrudService<Grado>(ENDPOINTS.grades);
+export const gradesService = createCrudService<Grade>(ENDPOINTS.grades);

@@ -1,5 +1,5 @@
 import { createCrudService } from "@/lib/crud-service";
 import { ENDPOINTS } from "@/lib/endpoints";
-import type { Nivel } from "@/types";
+import type { Level } from "@/types";
 
-export const levelsService = createCrudService<Nivel>(ENDPOINTS.levels);
+export const levelsService = createCrudService<Level>(ENDPOINTS.levels);

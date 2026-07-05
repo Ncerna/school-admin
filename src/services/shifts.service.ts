@@ -1,5 +1,5 @@
 import { createCrudService } from "@/lib/crud-service";
 import { ENDPOINTS } from "@/lib/endpoints";
-import type { Turno } from "@/types";
+import type { Shift } from "@/types";
 
-export const shiftsService = createCrudService<Turno>(ENDPOINTS.shifts);
+export const shiftsService = createCrudService<Shift>(ENDPOINTS.shifts);

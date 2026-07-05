@@ -71,7 +71,7 @@ export function DataTable<T extends { id: string }>({
     );
   }
 
-  if (data.length === 0) {
+  if (!data || data.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center gap-2 rounded-lg border border-dashed py-16 text-center">
         <Inbox className="h-8 w-8 text-muted-foreground" />

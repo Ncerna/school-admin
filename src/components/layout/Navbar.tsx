@@ -13,7 +13,9 @@ import { useAuth } from "@/context/AuthContext";
 import { useSidebar } from "./sidebar-context";
 
 function getIniciales(nombres: string, apellidos: string) {
-  return `${nombres[0] ?? ""}${apellidos[0] ?? ""}`.toUpperCase();
+  const nombresStr = nombres || "";
+  const apellidosStr = apellidos || "";
+  return `${nombresStr[0] ?? ""}${apellidosStr[0] ?? ""}`.toUpperCase();
 }
 
 interface NavbarProps {

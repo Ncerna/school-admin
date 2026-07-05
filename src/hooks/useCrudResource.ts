@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useRef } from "react";
 import { useDebounce } from "./useDebounce";
 import { ApiError } from "@/types/api";
 import type { ListParams, PaginatedData, PaginationMeta } from "@/types/api";
@@ -36,6 +36,9 @@ export function useCrudResource<TEntity extends { id: string }, TPayload = Parti
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  // Use a ref to track if this is the first render to avoid double fetch in StrictMode
+  const isFirstRender = useRef(true);
+
   const fetchPage = useCallback(async () => {
     setIsLoading(true);
     setError(null);
@@ -48,8 +51,15 @@ export function useCrudResource<TEntity extends { id: string }, TPayload = Parti
         sortDir,
         ...options?.extraParams,
       });
-      setItems(result.items);
-      setPagination(result.pagination);
+      // Handle case when API returns undefined or malformed response
+      if (result && result.pagination) {
+        setItems(result.items);
+        setPagination(result.pagination);
+      } else {
+        // If no data or malformed response, set empty state
+        setItems([]);
+        setPagination(EMPTY_PAGINATION);
+      }
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "No se pudo cargar la información.");
     } finally {
@@ -59,8 +69,13 @@ export function useCrudResource<TEntity extends { id: string }, TPayload = Parti
   }, [page, limit, debouncedSearch, sortBy, sortDir, JSON.stringify(options?.extraParams)]);
 
   useEffect(() => {
-    fetchPage();
-  }, [fetchPage]);
+    // In StrictMode, effects run twice in development. This ref prevents the second run.
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      fetchPage();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page, limit, debouncedSearch, sortBy, sortDir, options?.extraParams]);
 
   // Reset to page 1 whenever the search term changes so results aren't empty.
   useEffect(() => {

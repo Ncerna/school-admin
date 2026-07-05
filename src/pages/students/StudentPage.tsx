@@ -9,35 +9,24 @@ import { Pagination } from "@/components/common/Pagination";
 import { SearchInput } from "@/components/common/SearchInput";
 import { Button } from "@/components/ui/button";
 import { useCrudResource } from "@/hooks/useCrudResource";
-import { useLookupOptions } from "@/hooks/useLookupOptions";
 import { studentsService } from "@/services/students.service";
-import { gradesService } from "@/services/grades.service";
-import { classroomsService } from "@/services/classrooms.service";
-import type { Aula, ColumnDef, Estudiante, Grado } from "@/types";
+import type { ColumnDef, Student } from "@/types";
 
-export default function EstudiantesPage() {
+export default function StudentsPage() {
   const navigate = useNavigate();
-  const resource = useCrudResource<Estudiante>(studentsService);
-  const [deleteTarget, setDeleteTarget] = useState<Estudiante | null>(null);
+  const resource = useCrudResource<Student>(studentsService);
+  const [deleteTarget, setDeleteTarget] = useState<Student | null>(null);
 
-  const { options: gradoOptions } = useLookupOptions<Grado>(gradesService, (g) => ({
-    label: g.nombre,
-    value: g.id,
-  }));
-  const { options: aulaOptions } = useLookupOptions<Aula>(classroomsService, (a) => ({
-    label: a.nombre,
-    value: a.id,
-  }));
-  const gradoById = new Map(gradoOptions.map((o) => [o.value, o.label]));
-  const aulaById = new Map(aulaOptions.map((o) => [o.value, o.label]));
-
-  const columns: ColumnDef<Estudiante>[] = [
-    { header: "Nombres", accessor: "nombres", sortable: true },
-    { header: "Apellidos", accessor: "apellidos", sortable: true },
-    { header: "DNI", accessor: "dni" },
-    { header: "Grado", accessor: "gradoId", render: (item) => gradoById.get(item.gradoId) ?? "—" },
-    { header: "Aula", accessor: "aulaId", render: (item) => aulaById.get(item.aulaId) ?? "—" },
-    { header: "Estado", accessor: "estado", render: (item) => <StatusBadge estado={item.estado} /> },
+  const columns: ColumnDef<Student>[] = [
+  { header: "Nombres", accessor: "first_name", sortable: true },
+  { header: "Apellidos", accessor: "last_name", sortable: true },
+  { header: "DNI", accessor: "dni" },
+  { header: "Correo", accessor: "email", sortable: true },
+  { header: "Fecha de nacimiento", accessor: "birth_date" },
+  { header: "Dirección", accessor: "address" },
+  { header: "País", accessor: "country" },
+  { header: "Contacto de emergencia", accessor: "emergency_contact" },
+  { header: "Género", accessor: "gender" },
   ];
 
   async function handleDelete() {

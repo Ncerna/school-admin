@@ -1,132 +1,133 @@
 import type { ReactNode } from "react";
 
-// Tipos de dominio del sistema escolar.
-// Centralizar los tipos aquí facilita escalar el proyecto: cualquier
-// módulo nuevo (por ejemplo "Matrículas" o "Asistencias") puede
-// reutilizar estas mismas convenciones.
+// Domain types for the school system.
+// Centralizing types here makes it easy to scale the project: any
+// new module (e.g., "Enrollments" or "Attendance") can
+// reuse these same conventions.
 
-export type Estado = "Activo" | "Inactivo";
+export type Status = "Activo" | "Inactivo";
 
-export interface Usuario {
+export interface User {
   id: string;
-  nombre: string;
-  correo: string;
-  rol: "Administrador" | "Secretaría" | "Director";
+  name: string;
+  email: string;
+  role: "Administrador" | "Secretaría" | "Director";
   avatarUrl?: string;
 }
 
-export interface Nivel {
+export interface Level {
   id: string;
-  nombre: string;
-  descripcion: string;
-  estado: Estado;
+  name: string;
+  description: string;
+  status: Status;
 }
 
-export interface Grado {
+export interface Grade {
   id: string;
-  nombre: string;
-  nivelId: string;
-  seccion: string;
-  aulaId: string;
-  vacantes: number;
-  estado: Estado;
+  name: string;
+  levelId: string;
+  section: string;
+  classroomId: string;
+  vacancies: number;
+  status: Status;
 }
 
-export interface Aula {
+export interface Classroom {
   id: string;
-  nombre: string;
-  estado: Estado;
+  name: string;
+  status: Status;
 }
 
-export interface Curso {
+export interface Course {
   id: string;
-  nombre: string;
-  codigo?: string;
-  estado: Estado;
+  name: string;
+  code?: string;
+  status: Status;
 }
 
-export interface Turno {
+export interface Shift {
   id: string;
-  nombre: string;
-  horaInicio: string;
-  horaFin: string;
-  estado: Estado;
+  name: string;
+  startTime: string;
+  endTime: string;
+  status: Status;
 }
 
-export interface AnioAcademico {
+export interface AcademicYear {
   id: string;
-  nombre: string;
-  fechaInicio: string;
-  fechaFin: string;
-  estado: Estado;
-  estadoMatricula: Estado;
-  turnoIds: string[];
+  name: string;
+  startDate: string;
+  endDate: string;
+  status: Status;
+  enrollmentStatus: Status;
+  shiftIds: string[];
 }
 
-export interface TipoEvaluacion {
+export interface EvaluationType {
   id: string;
-  nombre: string;
-  cantidadPeriodos: number;
-  estado: Estado;
-  enUso?: boolean;
+  name: string;
+  periodCount: number;
+  status: Status;
+  inUse?: boolean;
 }
 
-export interface Rol {
+export interface Role {
   id: string;
-  nombre: string;
-  descripcion?: string;
+  name: string;
+  description?: string;
 }
 
-export interface MenuAcceso {
+export interface MenuAccess {
   id: string;
-  nombre: string;
-  asignado: boolean;
+  name: string;
+  assigned: boolean;
 }
 
-export interface Docente {
+export interface Teacher {
   id: string;
-  nombres: string;
-  apellidos: string;
+  names: string;
+  surnames: string;
   dni: string;
-  especialidad: string;
-  correo: string;
-  telefono: string;
-  estado: Estado;
+  specialty: string;
+  email: string;
+  phone: string;
+  status: Status;
 }
 
-export type Sexo = "Masculino" | "Femenino";
-export type TipoParentesco = "Padre" | "Madre" | "Tutor" | "Abuelo(a)" | "Otro";
+export type Gender = "male" | "female";
+export type RelationshipType = "Father" | "Mother" | "Tutor" | "Grandparent" | "Other";
 
-export interface Apoderado {
-  nombres: string;
-  apellidos: string;
-  telefono: string;
-  tipoParentesco: TipoParentesco | "";
-}
-
-export interface Estudiante {
-  id: string;
-  // Datos obligatorios
-  nombres: string;
-  apellidos: string;
+export interface Guardian {
+  names: string;
+  surnames: string;
   dni: string;
-  correo: string;
-  telefono: string;
-  sexo: Sexo | "";
-  gradoId: string;
-  aulaId: string;
-  estado: Estado;
-  // Datos opcionales
-  pais?: string;
-  direccion?: string;
-  fechaNacimiento?: string;
-  contactoEmergencia?: string;
-  viveConPadres?: boolean;
-  // Información del apoderado
-  apoderado: Apoderado;
+  phone: string;
+  relationshipType: RelationshipType | "";
 }
 
-// Definición genérica de una columna de tabla, reutilizada por todos los módulos.
+export interface Student {
+  id: string;
+  // Required fields
+  firstName: string;
+  lastName: string;
+  dni: string;
+  email: string;
+  gender: Gender | "";
+  // Optional fields
+  country?: string;
+  address?: string;
+  birthDate?: string;
+  emergencyContact?: string;
+  // Status returned by API
+  status?: Status;
+  // Guardian information
+  guardian: Guardian;
+}
+
+// Payload type for creating/updating students (matches API expected keys)
+export type StudentPayload = Omit<Student, "id" | "status">;
+
+// Generic table column definition, reused by all modules.
 export interface ColumnDef<T> {
   header: string;
   accessor: keyof T;
@@ -136,7 +137,7 @@ export interface ColumnDef<T> {
   sortable?: boolean;
 }
 
-// Definición genérica de un campo de formulario, usado en los modales de crear/editar.
+// Generic form field definition, used in create/edit modals.
 export type FieldType = "text" | "email" | "number" | "select" | "textarea";
 
 export interface SelectOption {
@@ -152,3 +153,6 @@ export interface FieldDef<T> {
   options?: SelectOption[];
   required?: boolean;
 }
+
+// Type aliases for backward compatibility (Spanish names)
+export type { Level as Nivel, Grade as Grado, Classroom as Aula, Course as Curso, Shift as Turno, AcademicYear as AnioAcademico, EvaluationType as TipoEvaluacion, Role as Rol, MenuAccess as MenuAcceso, Teacher as Docente, Student as Estudiante, Guardian as Apoderado };

@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import type { PaginationMeta } from "@/types/api";
 
 interface PaginationProps {
-  pagination: PaginationMeta;
+  pagination: PaginationMeta | null | undefined;
   onPageChange: (page: number) => void;
   disabled?: boolean;
 }
@@ -14,6 +14,9 @@ interface PaginationProps {
  * `pagination` meta block returned by the API wrapper.
  */
 export function Pagination({ pagination, onPageChange, disabled }: PaginationProps) {
+  // Handle case when pagination is undefined or null
+  if (!pagination) return null;
+
   const { currentPage, totalPage, total, limit } = pagination;
 
   if (total === 0) return null;

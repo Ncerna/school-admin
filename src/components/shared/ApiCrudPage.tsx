@@ -30,8 +30,8 @@ interface ApiCrudPageProps<T extends { id: string }, TPayload = Omit<T, "id">> {
 }
 
 /**
- * Reusable list+form+delete page. Every catalog module (turnos, aulas,
- * grados, cursos, docentes, tipos de evaluación...) is just this component
+ * Reusable list+form+delete page. Every catalog module (Shifts, Classrooms,
+ * Grades, Courses, Teachers, tipos de evaluación...) is just this component
  * configured with columns/fields/api, keeping pagination, search, sorting,
  * loading states and error handling centralized in one place.
  */
@@ -109,12 +109,12 @@ export function ApiCrudPage<T extends { id: string }, TPayload = Omit<T, "id">>(
         </div>
       )}
 
-      <div className="mb-4 flex items-center gap-2">
-        <SearchInput value={resource.search} onChange={resource.setSearch} placeholder={searchPlaceholder} />
-        <span className="hidden shrink-0 text-sm text-muted-foreground sm:inline">
-          {resource.pagination.total} registro(s)
-        </span>
-      </div>
+       <div className="mb-4 flex items-center gap-2">
+         <SearchInput value={resource.search} onChange={resource.setSearch} placeholder={searchPlaceholder} />
+         <span className="hidden shrink-0 text-sm text-muted-foreground sm:inline">
+           {resource.pagination?.total ?? 0} registro(s)
+         </span>
+       </div>
 
       <DataTable
         columns={columns}

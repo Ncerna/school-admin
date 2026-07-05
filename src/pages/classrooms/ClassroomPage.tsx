@@ -1,17 +1,17 @@
 import { ApiCrudPage } from "@/components/shared/ApiCrudPage";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { classroomsService } from "@/services/classrooms.service";
-import type { Aula, ColumnDef, FieldDef } from "@/types";
+import type { Classroom, ColumnDef, FieldDef } from "@/types";
 
-const columns: ColumnDef<Aula>[] = [
-  { header: "Aula", accessor: "nombre", sortable: true },
-  { header: "Estado", accessor: "estado", render: (item) => <StatusBadge estado={item.estado} /> },
+const columns: ColumnDef<Classroom>[] = [
+  { header: "Aula", accessor: "name", sortable: true },
+  { header: "Estado", accessor: "status", render: (item) => <StatusBadge estado={item.status} /> },
 ];
 
-const fields: FieldDef<Aula>[] = [
-  { name: "nombre", label: "Nombre del aula", type: "text", placeholder: "Ej. Aula 101", required: true },
+const fields: FieldDef<Classroom>[] = [
+  { name: "name", label: "Nombre del aula", type: "text", placeholder: "Ej. Aula 101", required: true },
   {
-    name: "estado",
+    name: "status",
     label: "Estado",
     type: "select",
     required: true,
@@ -22,17 +22,17 @@ const fields: FieldDef<Aula>[] = [
   },
 ];
 
-export default function AulasPage() {
+export default function ClassroomsPage() {
   return (
-    <ApiCrudPage<Aula>
+    <ApiCrudPage<Classroom>
       title="Aulas"
       description="Administra el catálogo de aulas del colegio."
       columns={columns}
       fields={fields}
       api={classroomsService}
-      emptyItem={{ nombre: "", estado: "Activo" }}
+      emptyItem={{ name: "", status: "Activo" }}
       searchPlaceholder="Buscar aula..."
-      newLabel="Nueva aula"
+      newLabel="Nuevo aula"
     />
   );
 }
