@@ -51,11 +51,17 @@ export function FormDialog<T extends Record<string, any>>({
   // Sincroniza el formulario cada vez que se abre con un registro distinto
   // (creación vs. edición), evitando que queden datos de una sesión previa.
   useEffect(() => {
+   
     if (open) setValues(initialValues);
   }, [open, initialValues]);
 
   function handleChange(name: keyof T, value: string | number) {
-    setValues((prev) => ({ ...prev, [name]: value }));
+   
+    setValues((prev) => {
+      const newValues = { ...prev, [name]: value };
+     
+      return newValues;
+    });
   }
 
   function handleSubmit(e: FormEvent) {
@@ -92,6 +98,7 @@ export function FormDialog<T extends Record<string, any>>({
                       options={field.options ?? []}
                       placeholder={field.placeholder}
                       required={field.required}
+                      disabled={isFormLoading}
                       error={fieldErrors?.[0]}
                     />
                   ) : field.type === "textarea" ? (

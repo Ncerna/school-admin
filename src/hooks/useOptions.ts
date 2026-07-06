@@ -7,7 +7,7 @@ import type { SelectOption } from "@/types";
  * These endpoints return data directly in the `data` property, not paginated.
  * Reused by any form that needs to populate a dropdown from a catalog.
  */
-export function useOptions<T extends { id: string; name: string }>(
+export function useOptions<T extends { id: string | number; name: string }>(
   endpoint: string,
   mapToOption: (item: T) => SelectOption
 ) {
@@ -19,9 +19,13 @@ export function useOptions<T extends { id: string; name: string }>(
     try {
       // apiClient.get already extracts the `data` property from the response
       const data = await apiClient.get<T[]>(`${endpoint}/options`);
-      setOptions(data.map(mapToOption));
+      // Ensure all values are strings
+      setOptions(data.map((item) => ({
+        ...mapToOption(item),
+        value: String(mapToOption(item).value),
+      })));
     } catch (err) {
-      console.error("Error fetching options:", err);
+    
     } finally {
       setIsLoading(false);
     }

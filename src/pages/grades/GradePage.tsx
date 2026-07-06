@@ -5,6 +5,17 @@ import { gradesService } from "@/services/grades.service";
 import { useOptions } from "@/hooks/useOptions";
 import type { ColumnDef, FieldDef, Grade, Level, Classroom } from "@/types";
 
+// Memoize the empty item to prevent unnecessary re-renders
+const emptyGrade: Grade = {
+  id: "",
+  name: "",
+  levelId: "",
+  section: "",
+  classroomId: "",
+  vacancies: 1,
+  status: "Activo",
+};
+
 export default function GradesPage() {
   // Load options dynamically when the modal opens
   const { options: levelOptions, isLoading: levelsLoading, fetch: fetchLevels } = useOptions<Level>("/levels", (n) => ({
@@ -38,35 +49,38 @@ export default function GradesPage() {
   ];
 
   // Memoize fields to avoid re-creating on each render
-  const fields = useMemo<FieldDef<Grade>[]>(() => [
-    { name: "name", label: "Grado", type: "text", placeholder: "Ej. 1°", required: true },
-    { 
-      name: "levelId", 
-      label: "Nivel", 
-      type: "select", 
-      required: true, 
-      options: [{ label: "--- Seleccione ---", value: "" }, ...levelOptions] 
-    },
-    { name: "section", label: "Sección", type: "text", placeholder: "Ej. A", required: true },
-    { 
-      name: "classroomId", 
-      label: "Aula", 
-      type: "select", 
-      required: true, 
-      options: [{ label: "--- Seleccione ---", value: "" }, ...classroomOptions] 
-    },
-    { name: "vacancies", label: "Vacantes", type: "number", placeholder: "Ej. 30", required: true },
-    {
-      name: "status",
-      label: "Estado",
-      type: "select",
-      required: true,
-      options: [
-        { label: "Activo", value: "Activo" },
-        { label: "Inactivo", value: "Inactivo" },
-      ],
-    },
-  ], [levelOptions, classroomOptions]);
+  const fields = useMemo<FieldDef<Grade>[]>(() => {
+   
+    return [
+      { name: "name", label: "Grado", type: "text", placeholder: "Ej. 1°", required: true },
+      { 
+        name: "levelId", 
+        label: "Nivel", 
+        type: "select", 
+        required: true, 
+        options: [{ label: "--- Seleccione ---", value: "" }, ...levelOptions] 
+      },
+      { name: "section", label: "Sección", type: "text", placeholder: "Ej. A", required: true },
+      { 
+        name: "classroomId", 
+        label: "Aula", 
+        type: "select", 
+        required: true, 
+        options: [{ label: "--- Seleccione ---", value: "" }, ...classroomOptions] 
+      },
+      { name: "vacancies", label: "Vacantes", type: "number", placeholder: "Ej. 30", required: true },
+      {
+        name: "status",
+        label: "Estado",
+        type: "select",
+        required: true,
+        options: [
+          { label: "Activo", value: "Activo" },
+          { label: "Inactivo", value: "Inactivo" },
+        ],
+      },
+    ];
+  }, [levelOptions, classroomOptions]);
 
   return (
     <ApiCrudPage<Grade>
@@ -75,7 +89,7 @@ export default function GradesPage() {
       columns={columns}
       fields={fields}
       api={gradesService}
-      emptyItem={{ name: "", levelId: "", section: "", classroomId: "", vacancies: 0, status: "Activo" }}
+      emptyItem={emptyGrade}
       searchPlaceholder="Buscar grado..."
       newLabel="Nuevo grado"
       onFormOpen={handleFormOpen}

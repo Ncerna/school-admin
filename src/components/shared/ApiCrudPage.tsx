@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { Plus, Search } from "lucide-react";
 import { PageHeader } from "./PageHeader";
 import { DataTable } from "./DataTable";
@@ -109,7 +109,10 @@ export function ApiCrudPage<T extends { id: string }, TPayload = Omit<T, "id">>(
     }
   }
 
-  const formInitialValues = (editingItem ?? { ...emptyItem, id: "" }) as T;
+  // Memoize formInitialValues to prevent unnecessary re-renders
+  const formInitialValues = useMemo(() => {
+    return (editingItem ?? { ...emptyItem, id: "" }) as T;
+  }, [editingItem, emptyItem]);
 
   return (
     <div>
