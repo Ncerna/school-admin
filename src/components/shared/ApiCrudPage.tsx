@@ -30,6 +30,8 @@ interface ApiCrudPageProps<T extends { id: string }, TPayload = Omit<T, "id">> {
   newLabel?: string;
   /** Callback when form dialog opens (for lazy loading options) */
   onFormOpen?: () => void;
+  /** Whether the form options are still loading */
+  isFormLoading?: boolean;
 }
 
 /**
@@ -48,6 +50,7 @@ export function ApiCrudPage<T extends { id: string }, TPayload = Omit<T, "id">>(
   searchPlaceholder = "Buscar...",
   newLabel = "Nuevo",
   onFormOpen,
+  isFormLoading = false,
 }: ApiCrudPageProps<T, TPayload>) {
   const resource = useCrudResource<T, TPayload>(api);
   const [formOpen, setFormOpen] = useState(false);
@@ -164,6 +167,7 @@ export function ApiCrudPage<T extends { id: string }, TPayload = Omit<T, "id">>(
         submitLabel={editingItem ? "Guardar cambios" : "Crear"}
         isSubmitting={resource.isSaving}
         serverErrors={formErrors}
+        isFormLoading={isFormLoading}
       />
 
       <ConfirmDialog
