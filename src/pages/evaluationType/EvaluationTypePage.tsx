@@ -5,14 +5,14 @@ import type { ColumnDef, FieldDef, EvaluationType } from "@/types";
 
 const columns: ColumnDef<EvaluationType>[] = [
   { header: "Nombre", accessor: "name", sortable: true },
-  { header: "Cantidad de períodos", accessor: "periodCount" },
+  { header: "Cantidad de períodos", accessor: "periods_count" },
   { header: "Estado", accessor: "status", render: (item) => <StatusBadge estado={item.status} /> },
 ];
 
 const fields: FieldDef<EvaluationType>[] = [
   { name: "name", label: "Nombre", type: "text", placeholder: "Ej. Bimestre", required: true },
   {
-    name: "periodCount",
+    name: "periods_count",
     label: "Cantidad de períodos",
     type: "number",
     placeholder: "Ej. 4",
@@ -38,7 +38,7 @@ export default function EvaluationTypePage() {
       columns={columns}
       fields={fields}
       api={evaluationTypesService}
-      emptyItem={{ name: "", periodCount: 1, status: "Activo" }}
+      emptyItem={{ name: "", periods_count: 1, status: "Activo" }}
       searchPlaceholder="Buscar tipo de evaluación..."
       newLabel="Nuevo tipo"
     />

@@ -18,8 +18,8 @@ const fields: FieldDef<Course>[] = [
     type: "select",
     required: true,
     options: [
-      { label: "Activo", value: "ACTIVE" },
-      { label: "Inactivo", value: "INACTIVE" },
+      { label: "Activo", value: "Activo" },
+      { label: "Inactivo", value: "Inactivo" },
     ],
   },
 ];

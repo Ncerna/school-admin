@@ -89,62 +89,61 @@ export function FormDialog<T extends Record<string, any>>({
 
               return (
                 <div key={name} className="grid gap-1.5">
-                  {field.type === "select" ? (
-                    <SelectField
-                      name={name}
-                      label={field.label}
-                      value={String(value)}
-                      onChange={(v) => handleChange(field.name, v)}
-                      options={field.options ?? []}
-                      placeholder={field.placeholder}
-                      required={field.required}
-                      disabled={isFormLoading}
-                      error={fieldErrors?.[0]}
-                    />
-                  ) : field.type === "textarea" ? (
-                    <>
-                      <Label htmlFor={name}>
-                        {field.label}
-                        {field.required && <span className="text-destructive"> *</span>}
-                      </Label>
-                      <Textarea
-                        id={name}
-                        required={field.required}
-                        placeholder={field.placeholder}
-                        value={value}
-                        aria-invalid={Boolean(fieldErrors)}
-                        onChange={(e) => handleChange(field.name, e.target.value)}
-                      />
-                    </>
-                  ) : (
-                    <>
-                      <Label htmlFor={name}>
-                        {field.label}
-                        {field.required && <span className="text-destructive"> *</span>}
-                      </Label>
-                      <Input
-                        id={name}
-                        type={field.type}
-                        required={field.required}
-                        placeholder={field.placeholder}
-                        value={value}
-                        aria-invalid={Boolean(fieldErrors)}
-                        onChange={(e) =>
-                          handleChange(
-                            field.name,
-                            field.type === "number" ? Number(e.target.value) : e.target.value
-                          )
-                        }
-                      />
-                    </>
-                  )}
-
-                  {/* Mensajes de validación devueltos por el backend. */}
-                  {fieldErrors?.slice(1).map((message) => (
-                    <p key={message} className="text-xs text-destructive">
-                      {message}
-                    </p>
-                  ))}
+                   {field.type === "select" ? (
+                     <SelectField
+                       name={name}
+                       label={field.label}
+                       value={String(value)}
+                       onChange={(v) => handleChange(field.name, v)}
+                       options={field.options ?? []}
+                       placeholder={field.placeholder}
+                       required={field.required}
+                       disabled={isFormLoading}
+                       error={fieldErrors?.[0]}
+                     />
+                   ) : field.type === "textarea" ? (
+                     <>
+                       <Label htmlFor={name}>
+                         {field.label}
+                         {field.required && <span className="text-destructive"> *</span>}
+                       </Label>
+                       <Textarea
+                         id={name}
+                         required={field.required}
+                         placeholder={field.placeholder}
+                         value={value}
+                         aria-invalid={Boolean(fieldErrors)}
+                         onChange={(e) => handleChange(field.name, e.target.value)}
+                       />
+                       {fieldErrors && (
+                         <p className="text-xs text-destructive">{fieldErrors[0]}</p>
+                       )}
+                     </>
+                   ) : (
+                     <>
+                       <Label htmlFor={name}>
+                         {field.label}
+                         {field.required && <span className="text-destructive"> *</span>}
+                       </Label>
+                       <Input
+                         id={name}
+                         type={field.type}
+                         required={field.required}
+                         placeholder={field.placeholder}
+                         value={value}
+                         aria-invalid={Boolean(fieldErrors)}
+                         onChange={(e) =>
+                           handleChange(
+                             field.name,
+                             field.type === "number" ? Number(e.target.value) : e.target.value
+                           )
+                         }
+                       />
+                       {fieldErrors && (
+                         <p className="text-xs text-destructive">{fieldErrors[0]}</p>
+                       )}
+                     </>
+                   )}
                 </div>
               );
             })}

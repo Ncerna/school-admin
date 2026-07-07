@@ -34,6 +34,9 @@ export interface Grade {
   classroomId: string;
   vacancies: number;
   status: Status;
+  
+  levelName?: string;
+  classroomName?: string;
 }
 
 export interface Classroom {
@@ -70,7 +73,7 @@ export interface AcademicYear {
 export interface EvaluationType {
   id: string;
   name: string;
-  periodCount: number;
+  periods_count: number;
   status: Status;
   inUse?: boolean;
 }
