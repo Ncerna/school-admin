@@ -16,6 +16,17 @@ interface RequestOptions {
   signal?: AbortSignal;
 }
 
+interface FormRequestOptions {
+  method?: HttpMethod;
+  body: FormData;
+  params?: ListParams | Record<string, unknown>;
+  /** Most endpoints require the Access Token; only auth endpoints don't. */
+  requiresAuth?: boolean;
+  /** Internal flag to avoid infinite refresh loops. */
+  isRetry?: boolean;
+  signal?: AbortSignal;
+}
+
 function buildQueryString(params?: Record<string, unknown>) {
   if (!params) return "";
   const search = new URLSearchParams();
@@ -105,6 +116,45 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
   return payload.data;
 }
 
+async function requestForm<T>(path: string, options: FormRequestOptions): Promise<T> {
+  const { method = "POST", body, params, requiresAuth = true, isRetry = false, signal } = options;
+
+  const headers: Record<string, string> = {};
+
+  if (requiresAuth) {
+    const token = tokenStorage.getAccessToken();
+    if (token) headers.Authorization = `Bearer ${token}`;
+  }
+
+  const response = await fetch(`${API_BASE_URL}${path}${buildQueryString(params)}`, {
+    method,
+    headers,
+    body,
+    signal,
+  });
+
+  // 204 No Content or empty bodies still need a consistent return shape.
+  const text = await response.text();
+  const payload = (text ? JSON.parse(text) : {}) as ApiResponse<T>;
+
+  if (response.status === 401 && requiresAuth && !isRetry) {
+    try {
+      await refreshAccessToken();
+      return requestForm<T>(path, { ...options, isRetry: true });
+    } catch {
+      tokenStorage.clear();
+      emitSessionExpired();
+      throw new ApiError("Your session has expired. Please sign in again.", 401);
+    }
+  }
+
+  if (!response.ok || !payload.success) {
+    throw new ApiError(payload.message ?? "Unexpected error.", response.status, payload.errors ?? null);
+  }
+
+  return payload.data;
+}
+
 /** Single, centralized API client used by every service in the app. */
 export const apiClient = {
   get: <T>(path: string, params?: Record<string, unknown>, options?: RequestOptions) =>
@@ -120,4 +170,10 @@ export const apiClient = {
     request<T>(path, { ...options, method: "PATCH", body }),
 
   delete: <T>(path: string, options?: RequestOptions) => request<T>(path, { ...options, method: "DELETE" }),
+
+  postForm: <T>(path: string, body: FormData, options?: FormRequestOptions) =>
+    requestForm<T>(path, { ...options, method: "POST", body }),
+
+  putForm: <T>(path: string, body: FormData, options?: FormRequestOptions) =>
+    requestForm<T>(path, { ...options, method: "PUT", body }),
 };

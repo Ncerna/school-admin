@@ -24,6 +24,9 @@ const ShiftsPage = lazy(() => import("@/pages/shifts/ShiftPage"));
 const AcademicYearPage = lazy(() => import("@/pages/academicYear/AcademicYearPage"));
 const EvaluationTypePage = lazy(() => import("@/pages/evaluationType/EvaluationTypePage"));
 const AccessPage = lazy(() => import("@/pages/access/AccessPage"));
+const SchoolPage = lazy(() => import("@/pages/school/SchoolPage"));
+const PublicationPage = lazy(() => import("@/pages/publications/PublicationPage"));
+const PublicationFormPage = lazy(() => import("@/pages/publications/PublicationFormPage"));
 
 // Loading fallback component
 function PageLoader() {
@@ -145,6 +148,28 @@ export default function App() {
               <Route path="/activacion-cuentas" element={
                 <Suspense fallback={<PageLoader />}>
                   <ActivationStatusPage />
+                </Suspense>
+              } />
+
+              <Route path="/colegio" element={
+                <Suspense fallback={<PageLoader />}>
+                  <SchoolPage />
+                </Suspense>
+              } />
+
+              <Route path="/publicaciones" element={
+                <Suspense fallback={<PageLoader />}>
+                  <PublicationPage />
+                </Suspense>
+              } />
+              <Route path="/publicaciones/nuevo" element={
+                <Suspense fallback={<PageLoader />}>
+                  <PublicationFormPage />
+                </Suspense>
+              } />
+              <Route path="/publicaciones/:id/editar" element={
+                <Suspense fallback={<PageLoader />}>
+                  <PublicationFormPage />
                 </Suspense>
               } />
             </Route>

@@ -1,5 +1,9 @@
 import type { ReactNode } from "react";
 
+// School and Publication types
+import type { School, SchoolPayload } from "./school";
+import type { Publication, PublicationPayload, PublicationStatus, PublicationSection } from "./publication";
+
 // Domain types for the school system.
 // Centralizing types here makes it easy to scale the project: any
 // new module (e.g., "Enrollments" or "Attendance") can
@@ -161,5 +165,8 @@ export interface FieldDef<T> {
   required?: boolean;
 }
 
+// Re-export School and Publication types
+export { School, SchoolPayload, Publication, PublicationPayload, PublicationStatus, PublicationSection };
+
 // Type aliases for backward compatibility (Spanish names)
-export type { Level as Nivel, Grade as Grado, Classroom as Aula, Course as Curso, Shift as Turno, AcademicYear as AnioAcademico, EvaluationType as TipoEvaluacion, Role as Rol, MenuAccess as MenuAcceso, Teacher as Docente, Student as Estudiante, Guardian as Apoderado };
+export type { Level as Nivel, Grade as Grado, Classroom as Aula, Course as Curso, Shift as Turno, AcademicYear as AnioAcademico, EvaluationType as TipoEvaluacion, Role as Rol, MenuAccess as MenuAcceso, Teacher as Docente, Student as Estudiante, Guardian as Apoderado, School as Colegio, Publication as Publicacion };

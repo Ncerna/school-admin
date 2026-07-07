@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { Plus, Save, CheckCircle2 } from "lucide-react";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { DataTable } from "@/components/shared/DataTable";
@@ -22,9 +22,9 @@ import { LoadingButton } from "@/components/common/LoadingButton";
 import { Pagination } from "@/components/common/Pagination";
 import { SearchInput } from "@/components/common/SearchInput";
 import { useCrudResource } from "@/hooks/useCrudResource";
-import { useLookupOptions } from "@/hooks/useLookupOptions";
+import { useOptions } from "@/hooks/useOptions";
 import { AcademicYearsService } from "@/services/academic-years.service";
-import { shiftsService } from "@/services/shifts.service";
+import { ENDPOINTS } from "@/lib/endpoints";
 import { ApiError } from "@/types/api";
 import type { AcademicYear, ColumnDef, Shift } from "@/types";
 
@@ -41,20 +41,33 @@ const emptyItem: AcademicYearPayload = {
 
 export default function AcademicYearPage() {
   const resource = useCrudResource<AcademicYear, AcademicYearPayload>(AcademicYearsService);
-  const { options: shiftOptions } = useLookupOptions<Shift>(shiftsService, (t) => ({
+  const mapShiftToOption = useCallback((t: Shift) => ({
     label: t.name,
-    value: t.id,
-  }));
+    value: String(t.id),
+  }), []);
+  const { options: shiftOptions, isLoading: shiftsLoading, fetch: fetchShifts } = useOptions<Shift>(ENDPOINTS.shifts, mapShiftToOption);
 
   const [formOpen, setFormOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<AcademicYear | null>(null);
   const [values, setValues] = useState<AcademicYearPayload>(emptyItem);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
   const [deleteTarget, setDeleteTarget] = useState<AcademicYear | null>(null);
   const [activatingId, setActivatingId] = useState<string | null>(null);
+  const hasFetchedShifts = useRef(false);
 
+  // Cargar turnos cuando se abre el modal (solo una vez por apertura)
   useEffect(() => {
-    if (formOpen) setValues(editingItem ?? emptyItem);
-  }, [formOpen, editingItem]);
+    if (formOpen) {
+      setValues(editingItem ?? emptyItem);
+      setFieldErrors({});
+      if (!hasFetchedShifts.current) {
+        hasFetchedShifts.current = true;
+        fetchShifts();
+      }
+    } else {
+      hasFetchedShifts.current = false;
+    }
+  }, [formOpen, editingItem, fetchShifts]);
 
   const columns: ColumnDef<AcademicYear>[] = [
     { header: "Año académico", accessor: "name", sortable: true },
@@ -99,6 +112,7 @@ export default function AcademicYearPage() {
   }
 
   async function handleSubmit() {
+    setFieldErrors({});
     try {
       if (editingItem) {
         await resource.update(editingItem.id, values);
@@ -107,6 +121,9 @@ export default function AcademicYearPage() {
       }
       setFormOpen(false);
     } catch (err) {
+      if (err instanceof ApiError && err.errors) {
+        setFieldErrors(err.errors);
+      }
       // El mensaje ya queda expuesto en resource.error para mostrarlo en pantalla.
       if (!(err instanceof ApiError)) throw err;
     }
@@ -118,15 +135,16 @@ export default function AcademicYearPage() {
       await resource.remove(deleteTarget.id);
       setDeleteTarget(null);
     } catch {
-      // se mantiene el diálogo abierto para reintentar
+      // Se mantiene el diálogo abierto para reintentar
     }
   }
+
 
   return (
     <div>
       <PageHeader
         title="Años académicos"
-        description="Organiza los períodos lectivos y los turnos activos por año."
+        description="Organiza periodos académicos y turnos activos durante el año."
         action={
           <Button
             onClick={() => {
@@ -179,15 +197,24 @@ export default function AcademicYearPage() {
               <div className="grid gap-1.5">
                 <Label>Nombre</Label>
                 <Input value={values.name} onChange={(e) => setValues((p) => ({ ...p, name: e.target.value }))} placeholder="Ej. 2026" />
+                {fieldErrors.name && (
+                  <p className="text-xs text-destructive">{fieldErrors.name[0]}</p>
+                )}
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-1.5">
                   <Label>Fecha de inicio</Label>
                   <Input type="date" value={values.startDate} onChange={(e) => setValues((p) => ({ ...p, startDate: e.target.value }))} />
+                  {fieldErrors.startDate && (
+                    <p className="text-xs text-destructive">{fieldErrors.startDate[0]}</p>
+                  )}
                 </div>
                 <div className="grid gap-1.5">
                   <Label>Fecha de finalización</Label>
                   <Input type="date" value={values.endDate} onChange={(e) => setValues((p) => ({ ...p, endDate: e.target.value }))} />
+                  {fieldErrors.endDate && (
+                    <p className="text-xs text-destructive">{fieldErrors.endDate[0]}</p>
+                  )}
                 </div>
               </div>
               <div className="grid gap-1.5">
@@ -201,23 +228,33 @@ export default function AcademicYearPage() {
                     <SelectItem value="Inactivo">Inactivo</SelectItem>
                   </SelectContent>
                 </Select>
+                {fieldErrors.enrollmentStatus && (
+                  <p className="text-xs text-destructive">{fieldErrors.enrollmentStatus[0]}</p>
+                )}
               </div>
               <div className="grid gap-1.5">
                 <Label>Turnos activos</Label>
                 <div className="flex max-h-60 flex-col gap-2 overflow-y-auto rounded-md border p-3">
-                  {shiftOptions.map((option) => (
-                    <label key={option.value} className="flex items-center gap-2 text-sm">
-                      <Checkbox
-                        checked={values.shiftIds.includes(option.value)}
-                        onCheckedChange={() => toggleShift(option.value)}
-                      />
-                      {option.label}
-                    </label>
-                  ))}
-                  {shiftOptions.length === 0 && (
+                  {shiftsLoading ? (
+                    <p className="text-xs text-muted-foreground">Cargando turnos...</p>
+                  ) : (
+                    shiftOptions.map((option) => (
+                      <label key={option.value} className="flex items-center gap-2 text-sm">
+                        <Checkbox
+                          checked={values.shiftIds.includes(option.value)}
+                          onCheckedChange={() => toggleShift(option.value)}
+                        />
+                        {option.label}
+                      </label>
+                    ))
+                  )}
+                  {!shiftsLoading && shiftOptions.length === 0 && (
                     <p className="text-xs text-muted-foreground">No hay turnos registrados todavía.</p>
                   )}
                 </div>
+                {fieldErrors.shiftIds && (
+                  <p className="text-xs text-destructive">{fieldErrors.shiftIds[0]}</p>
+                )}
               </div>
             </DialogBody>
 

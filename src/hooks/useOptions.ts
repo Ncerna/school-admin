@@ -25,7 +25,8 @@ export function useOptions<T extends { id: string | number; name: string }>(
         value: String(mapToOption(item).value),
       })));
     } catch (err) {
-    
+      console.error(`Error fetching options from ${endpoint}/options:`, err);
+      setOptions([]);
     } finally {
       setIsLoading(false);
     }

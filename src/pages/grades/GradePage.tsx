@@ -42,8 +42,8 @@ export default function GradesPage() {
   const columns: ColumnDef<Grade>[] = [
     { header: "Grado", accessor: "name", sortable: true },
     { header: "Sección", accessor: "section" },
-    { header: "Nivel", accessor: "levelId", render: (item) => levelById.get(item.levelId) ?? "—" },
-    { header: "Aula", accessor: "classroomId", render: (item) => classroomById.get(item.classroomId) ?? "—" },
+    { header: "Nivel", accessor: "levelName", render: (item) => levelById.get(item.levelId) ?? "—" },
+    { header: "Aula", accessor: "classroomName", render: (item) => classroomById.get(item.classroomId) ?? "—" },
     { header: "Vacantes", accessor: "vacancies" },
     { header: "Estado", accessor: "status", render: (item) => <StatusBadge estado={item.status} /> },
   ];

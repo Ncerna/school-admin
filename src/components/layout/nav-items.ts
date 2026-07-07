@@ -10,6 +10,8 @@ import {
   ClipboardCheck,
   ShieldCheck,
   UserCheck,
+  School,
+  Newspaper,
   type LucideIcon,
 } from "lucide-react";
 
@@ -34,4 +36,6 @@ export const mainNavItems: NavItem[] = [
   { title: "Tipos de evaluación", url: "/tipos-evaluacion", icon: ClipboardCheck },
   { title: "Accesos", url: "/accesos", icon: ShieldCheck },
   { title: "Activación de cuentas", url: "/activacion-cuentas", icon: UserCheck },
+  { title: "Colegio", url: "/colegio", icon: School },
+  { title: "Publicaciones", url: "/publicaciones", icon: Newspaper },
 ];
