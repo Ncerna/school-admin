@@ -21,6 +21,7 @@ export const ENDPOINTS = {
   shifts: "/shifts",
   AcademicYears: "/years",
   evaluationTypes: "/evaluation-types",
+  evaluationPeriods: "/evaluation-periods",
   roles: "/roles",
   menus: "/menus",
 } as const;

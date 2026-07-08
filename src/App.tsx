@@ -23,6 +23,7 @@ const CoursesPage = lazy(() => import("@/pages/courses/CoursePage"));
 const ShiftsPage = lazy(() => import("@/pages/shifts/ShiftPage"));
 const AcademicYearPage = lazy(() => import("@/pages/academicYear/AcademicYearPage"));
 const EvaluationTypePage = lazy(() => import("@/pages/evaluationType/EvaluationTypePage"));
+const EvaluationPeriodPage = lazy(() => import("@/pages/evaluationPeriod/EvaluationPeriodPage"));
 const AccessPage = lazy(() => import("@/pages/access/AccessPage"));
 const SchoolPage = lazy(() => import("@/pages/school/SchoolPage"));
 const PublicationPage = lazy(() => import("@/pages/publications/PublicationPage"));
@@ -138,6 +139,11 @@ export default function App() {
               <Route path="/tipos-evaluacion" element={
                 <Suspense fallback={<PageLoader />}>
                   <EvaluationTypePage />
+                </Suspense>
+              } />
+              <Route path="/periodos-evaluacion" element={
+                <Suspense fallback={<PageLoader />}>
+                  <EvaluationPeriodPage />
                 </Suspense>
               } />
               <Route path="/accesos" element={

@@ -51,6 +51,7 @@ export default function AcademicYearPage() {
   const [editingItem, setEditingItem] = useState<AcademicYear | null>(null);
   const [values, setValues] = useState<AcademicYearPayload>(emptyItem);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
+  const [formError, setFormError] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<AcademicYear | null>(null);
   const [activatingId, setActivatingId] = useState<string | null>(null);
   const hasFetchedShifts = useRef(false);
@@ -64,6 +65,7 @@ export default function AcademicYearPage() {
         : emptyItem;
       setValues(itemData);
       setFieldErrors({});
+      setFormError(null);
       if (!hasFetchedShifts.current) {
         hasFetchedShifts.current = true;
         fetchShifts();
@@ -133,6 +135,7 @@ export default function AcademicYearPage() {
 
   async function handleSubmit() {
     setFieldErrors({});
+    setFormError(null);
     try {
       if (editingItem) {
         await resource.update(editingItem.id, values);
@@ -141,8 +144,13 @@ export default function AcademicYearPage() {
       }
       setFormOpen(false);
     } catch (err) {
-      if (err instanceof ApiError && err.errors) {
-        setFieldErrors(convertFieldErrors(err.errors));
+      if (err instanceof ApiError) {
+        if (err.errors) {
+          setFieldErrors(convertFieldErrors(err.errors));
+        } else if (err.message) {
+          // Handle API errors with message but no field errors (e.g., 409 Conflict)
+          setFormError(err.message);
+        }
       }
       // El mensaje ya queda expuesto en resource.error para mostrarlo en pantalla.
       if (!(err instanceof ApiError)) throw err;
@@ -214,6 +222,11 @@ export default function AcademicYearPage() {
             </DialogHeader>
 
             <DialogBody className="grid gap-4">
+              {formError && (
+                <div className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+                  {formError}
+                </div>
+              )}
               <div className="grid gap-1.5">
                 <Label>Nombre</Label>
                 <Input value={values.name} onChange={(e) => setValues((p) => ({ ...p, name: e.target.value }))} placeholder="Ej. 2026" />
