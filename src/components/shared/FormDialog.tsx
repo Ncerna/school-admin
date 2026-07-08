@@ -17,6 +17,24 @@ import { Textarea } from "@/components/ui/textarea";
 import { SelectField } from "@/components/common/SelectField";
 import type { FieldDef } from "@/types";
 
+// Convert snake_case field names to camelCase for matching with form fields
+function convertFieldErrors(errors: Record<string, string[]> | null): Record<string, string[]> | null {
+  if (!errors) return null;
+  const converted: Record<string, string[]> = {};
+  for (const [key, value] of Object.entries(errors)) {
+    // Convert snake_case to camelCase (e.g., enrollment_status -> enrollmentStatus)
+    const camelKey = key.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase());
+    // For array fields like shift_ids.0, map to the base field (shiftIds)
+    if (camelKey.startsWith("shiftIds") || camelKey.startsWith("levelIds") || camelKey.startsWith("classroomIds")) {
+      const baseKey = camelKey.split(".")[0];
+      converted[baseKey] = converted[baseKey] ?? value;
+    } else {
+      converted[camelKey] = value;
+    }
+  }
+  return converted;
+}
+
 interface FormDialogProps<T> {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -47,6 +65,7 @@ export function FormDialog<T extends Record<string, any>>({
   isFormLoading = false,
 }: FormDialogProps<T>) {
   const [values, setValues] = useState<T>(initialValues);
+  const convertedErrors = convertFieldErrors(serverErrors);
 
   // Sincroniza el formulario cada vez que se abre con un registro distinto
   // (creación vs. edición), evitando que queden datos de una sesión previa.
@@ -85,7 +104,7 @@ export function FormDialog<T extends Record<string, any>>({
             {memoizedFields.map((field) => {
               const name = String(field.name);
               const value = values[field.name] ?? "";
-              const fieldErrors = serverErrors?.[name];
+              const fieldErrors = convertedErrors?.[name];
 
               return (
                 <div key={name} className="grid gap-1.5">

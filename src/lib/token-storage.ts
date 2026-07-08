@@ -55,6 +55,9 @@ export const tokenStorage = {
   },
 
   updateTokens(tokens: { accessToken: string; refreshToken: string; expiresAt: string }) {
+    console.log("Updating tokens in localStorage:", tokens);
+    console.log("Current access token:", localStorage.getItem(STORAGE_KEYS.accessToken));
+    
     localStorage.setItem(STORAGE_KEYS.accessToken, tokens.accessToken);
     localStorage.setItem(STORAGE_KEYS.refreshToken, tokens.refreshToken);
     localStorage.setItem(STORAGE_KEYS.expiresAt, tokens.expiresAt);

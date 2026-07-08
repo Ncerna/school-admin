@@ -67,7 +67,7 @@ export interface AcademicYear {
   endDate: string;
   status: Status;
   enrollmentStatus: Status;
-  shiftIds: string[];
+  shiftIds: number[];
 }
 
 export interface EvaluationType {

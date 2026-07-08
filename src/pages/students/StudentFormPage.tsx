@@ -209,6 +209,7 @@ export default function StudentFormPage() {
               <div className="grid gap-1.5">
                 <Label>Contacto de emergencia</Label>
                 <Input value={values.emergencyContact} onChange={(e) => updateField("emergencyContact", e.target.value)} />
+                {fieldError("emergencyContact") && <p className="text-xs text-destructive">{fieldError("emergencyContact")}</p>}
               </div>
 
               <label className="col-span-full flex items-center gap-2 text-sm">

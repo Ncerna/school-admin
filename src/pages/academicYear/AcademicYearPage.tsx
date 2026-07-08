@@ -58,7 +58,11 @@ export default function AcademicYearPage() {
   // Cargar turnos cuando se abre el modal (solo una vez por apertura)
   useEffect(() => {
     if (formOpen) {
-      setValues(editingItem ?? emptyItem);
+      // Ensure shiftIds are always numbers (API may return numbers)
+      const itemData = editingItem
+        ? { ...editingItem, shiftIds: editingItem.shiftIds.map(Number) }
+        : emptyItem;
+      setValues(itemData);
       setFieldErrors({});
       if (!hasFetchedShifts.current) {
         hasFetchedShifts.current = true;
@@ -104,11 +108,27 @@ export default function AcademicYearPage() {
     },
   ];
 
-  function toggleShift(id: string) {
+  function toggleShift(id: number) {
     setValues((prev) => ({
       ...prev,
       shiftIds: prev.shiftIds.includes(id) ? prev.shiftIds.filter((t) => t !== id) : [...prev.shiftIds, id],
     }));
+  }
+
+  // Convert snake_case field names to camelCase for matching with form fields
+  function convertFieldErrors(errors: Record<string, string[]>): Record<string, string[]> {
+    const converted: Record<string, string[]> = {};
+    for (const [key, value] of Object.entries(errors)) {
+      // Convert snake_case to camelCase (e.g., enrollment_status -> enrollmentStatus)
+      const camelKey = key.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase());
+      // For array fields like shift_ids.0, map to the base field (shiftIds)
+      if (camelKey.startsWith("shiftIds")) {
+        converted.shiftIds = converted.shiftIds ?? value;
+      } else {
+        converted[camelKey] = value;
+      }
+    }
+    return converted;
   }
 
   async function handleSubmit() {
@@ -122,7 +142,7 @@ export default function AcademicYearPage() {
       setFormOpen(false);
     } catch (err) {
       if (err instanceof ApiError && err.errors) {
-        setFieldErrors(err.errors);
+        setFieldErrors(convertFieldErrors(err.errors));
       }
       // El mensaje ya queda expuesto en resource.error para mostrarlo en pantalla.
       if (!(err instanceof ApiError)) throw err;
@@ -241,8 +261,8 @@ export default function AcademicYearPage() {
                     shiftOptions.map((option) => (
                       <label key={option.value} className="flex items-center gap-2 text-sm">
                         <Checkbox
-                          checked={values.shiftIds.includes(option.value)}
-                          onCheckedChange={() => toggleShift(option.value)}
+                          checked={values.shiftIds.includes(Number(option.value))}
+                          onCheckedChange={() => toggleShift(Number(option.value))}
                         />
                         {option.label}
                       </label>

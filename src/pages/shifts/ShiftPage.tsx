@@ -12,8 +12,8 @@ const columns: ColumnDef<Shift>[] = [
 
 const fields: FieldDef<Shift>[] = [
   { name: "name", label: "Nombre", type: "text", placeholder: "Ej. Mañana", required: true },
-  { name: "startTime", label: "Hora de inicio", type: "text", placeholder: "08:00", required: true },
-  { name: "endTime", label: "Hora de finalización", type: "text", placeholder: "13:00", required: true },
+ { name: "startTime", label: "Hora de inicio", type: "time", required: true },
+{ name: "endTime", label: "Hora de finalización", type: "time", required: true },
   {
     name: "status",
     label: "Estado",
