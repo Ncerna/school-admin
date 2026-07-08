@@ -25,13 +25,13 @@ const emptyStudent: StudentPayload = {
   birthDate: "",
   emergencyContact: "",
   livesWithParents: true,
-  guardian: { names: "", surnames: "", dni: "", phone: "", relationshipType: "" },
+  guardian: { names: "", last_name: "", dni: "", phone: "", relationshipType: "" },
 };
 
 // Map API error field names to local field names
 const errorFieldMap: Record<string, string> = {
   first_name: "names",
-  last_name: "surnames",
+  last_name: "last_name",
   guardian_name: "guardian.names",
   guardian_dni: "guardian.dni",
   guardian_phone: "guardian.phone",
@@ -47,7 +47,7 @@ export default function StudentFormPage() {
   // Ensure guardian is always defined (handles case when API returns undefined)
   const safeValues = {
     ...values,
-    guardian: values.guardian ?? { names: "", surnames: "", dni: "", phone: "", relationshipType: "" },
+    guardian: values.guardian ?? { names: "", last_name: "", dni: "", phone: "", relationshipType: "" },
   };
  
   const [isLoading, setIsLoading] = useState(isEditing);
@@ -78,7 +78,7 @@ export default function StudentFormPage() {
   function updateGuardian(key: string, value: string) {
     setValues((prev) => ({
       ...prev,
-      guardian: { ...(prev.guardian ?? { names: "", surnames: "", dni: "", phone: "", relationshipType: "" }), [key]: value },
+      guardian: { ...(prev.guardian ?? { names: "", last_name: "", dni: "", phone: "", relationshipType: "" }), [key]: value },
     }));
   }
 
@@ -238,8 +238,8 @@ export default function StudentFormPage() {
               <div className="grid gap-1.5">
                 <Label>Apellidos</Label>
                 <Input
-                  value={safeValues.guardian.surnames}
-                  onChange={(e) => updateGuardian("surnames", e.target.value)}
+                  value={safeValues.guardian.last_name}
+                  onChange={(e) => updateGuardian("last_name", e.target.value)}
                 />
               </div>
 

@@ -107,7 +107,7 @@ export type RelationshipType = "Father" | "Mother" | "Tutor" | "Grandparent" | "
 
 export interface Guardian {
   names: string;
-  surnames: string;
+  last_name: string;
   dni: string;
   phone: string;
   relationshipType: RelationshipType | "";
