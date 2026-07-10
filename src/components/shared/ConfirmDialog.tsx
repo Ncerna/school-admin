@@ -1,4 +1,4 @@
-import { Trash2 } from "lucide-react";
+import { Trash2, X } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -38,6 +38,7 @@ export function ConfirmDialog({
         </DialogHeader>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isLoading}>
+            <X className="h-4 w-4" />
             Cancelar
           </Button>
           <LoadingButton variant="destructive" isLoading={isLoading} onClick={onConfirm}>

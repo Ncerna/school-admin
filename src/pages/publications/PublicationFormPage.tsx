@@ -282,6 +282,7 @@ export default function PublicationFormPage() {
 
           <div className="flex justify-end gap-2">
             <Button type="button" variant="outline" onClick={() => navigate("/publicaciones")} disabled={isSaving}>
+              <X className="h-4 w-4" />
               Cancelar
             </Button>
             <LoadingButton type="submit" isLoading={isSaving}>

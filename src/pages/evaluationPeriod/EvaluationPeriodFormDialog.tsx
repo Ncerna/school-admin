@@ -1,5 +1,5 @@
 import { useState, useEffect, type FormEvent, useRef } from "react";
-import { Save, Calendar, CalendarDays } from "lucide-react";
+import { Save, Calendar, CalendarDays, X } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -371,6 +371,7 @@ export function EvaluationPeriodFormDialog({
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={handleCancel} disabled={isSaving}>
+              <X className="h-4 w-4" />
               Cancelar
             </Button>
             <LoadingButton type="submit" isLoading={isSaving} disabled={periods.length === 0}>

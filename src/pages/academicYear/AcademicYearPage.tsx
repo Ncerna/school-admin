@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef, useCallback } from "react";
-import { Plus, Save, CheckCircle2 } from "lucide-react";
+import { Plus, Save, CheckCircle2, X } from "lucide-react";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { DataTable } from "@/components/shared/DataTable";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
@@ -310,6 +310,7 @@ export default function AcademicYearPage() {
 
             <DialogFooter>
               <Button variant="outline" onClick={() => setFormOpen(false)} disabled={resource.isSaving}>
+                <X className="h-4 w-4" />
                 Cancelar
               </Button>
               <LoadingButton isLoading={resource.isSaving} onClick={handleSubmit}>

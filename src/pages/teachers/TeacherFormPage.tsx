@@ -1,6 +1,6 @@
 import { useEffect, useState, type FormEvent, useRef } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
-import { ArrowLeft, Save } from "lucide-react";
+import { ArrowLeft, Save, X } from "lucide-react";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -172,6 +172,7 @@ export default function TeacherFormPage() {
 
           <div className="flex justify-end gap-2">
             <Button type="button" variant="outline" onClick={() => navigate("/docentes")} disabled={isSaving}>
+              <X className="h-4 w-4" />
               Cancelar
             </Button>
             <LoadingButton type="submit" isLoading={isSaving}>

@@ -1,5 +1,5 @@
 import React, { useCallback, useState, useEffect } from "react";
-import { Plus, Search, Save } from "lucide-react";
+import { Plus, Search, Save, X } from "lucide-react";
 import { ApiCrudPage } from "@/components/shared/ApiCrudPage";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { gradeCoursesService } from "@/services/grade-courses.service";
@@ -157,6 +157,7 @@ function GradeCourseFormDialog({
 
             <DialogFooter>
               <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isSaving || isFormLoading}>
+                <X className="h-4 w-4" />
                 Cancelar
               </Button>
               <LoadingButton

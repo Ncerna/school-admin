@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent, useMemo } from "react";
-import { Save } from "lucide-react";
+import { Save, X } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -170,6 +170,7 @@ export function FormDialog<T extends Record<string, any>>({
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isSubmitting || isFormLoading}>
+              <X className="h-4 w-4" />
               Cancelar
             </Button>
             <LoadingButton type="submit" isLoading={isSubmitting || isFormLoading}>
