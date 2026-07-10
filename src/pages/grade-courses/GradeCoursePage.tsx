@@ -38,6 +38,7 @@ function GradeCourseFormDialog({
   gradeOptions,
   courseOptions,
   isFormLoading,
+  onSuccess,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -47,6 +48,7 @@ function GradeCourseFormDialog({
   gradeOptions: { value: string; label: string }[];
   courseOptions: { value: string; label: string }[];
   isFormLoading: boolean;
+  onSuccess?: () => void;
 }) {
   const [formValues, setFormValues] = useState<GradeCoursePayload>(emptyGradeCourse);
 
@@ -67,7 +69,13 @@ function GradeCourseFormDialog({
   }
 
   async function handleSubmit() {
-    await onSave(formValues);
+    try {
+      await onSave(formValues);
+      onSuccess?.();
+    } catch (err) {
+      // Error is handled by the parent component
+      console.error("Error saving grade course:", err);
+    }
   }
 
   return (
@@ -208,12 +216,14 @@ export default function GradeCoursePage() {
       editingItem,
       isSaving,
       onSave,
+      refetch,
     }: {
       open: boolean;
       onOpenChange: (open: boolean) => void;
       editingItem: GradeCourse | null;
       isSaving: boolean;
       onSave: (values: GradeCoursePayload) => Promise<void>;
+      refetch: () => void;
     }) => {
       return (
         <GradeCourseFormDialog
@@ -225,6 +235,10 @@ export default function GradeCoursePage() {
           gradeOptions={gradeOptions}
           courseOptions={courseOptions}
           isFormLoading={isFormLoading}
+          onSuccess={() => {
+            onOpenChange(false);
+            refetch();
+          }}
         />
       );
     },

@@ -33,8 +33,14 @@ interface ApiCrudPageProps<T extends { id: string }, TPayload = Omit<T, "id">> {
   onFormOpen?: () => void;
   /** Whether the form options are still loading */
   isFormLoading?: boolean;
-  /** Custom filter component to render above the table */
-  filterComponent?: (props: { setExtraParams: (params: Record<string, unknown>) => void }) => ReactNode;
+  /** Custom filter component to render above the table (receives search props to include in same row) */
+  filterComponent?: (props: {
+    setExtraParams: (params: Record<string, unknown>) => void;
+    search: string;
+    setSearch: (value: string) => void;
+    refetch: () => void;
+    searchPlaceholder: string;
+  }) => ReactNode;
   /** Custom form dialog component (for complex forms) - if not provided, uses default FormDialog */
   renderFormDialog?: (props: {
     open: boolean;
@@ -42,6 +48,7 @@ interface ApiCrudPageProps<T extends { id: string }, TPayload = Omit<T, "id">> {
     editingItem: T | null;
     isSaving: boolean;
     onSave: (values: TPayload) => Promise<void>;
+    refetch: () => void;
   }) => ReactNode;
 }
 
@@ -146,14 +153,13 @@ export function ApiCrudPage<T extends { id: string }, TPayload = Omit<T, "id">>(
         </div>
       )}
 
-      {filterComponent?.({ setExtraParams: resource.setExtraParams })}
-
-      <div className="mb-4 flex items-center justify-end gap-2">
-        <SearchInput value={resource.search} onChange={resource.setSearch} placeholder={searchPlaceholder} />
-        <Button variant="outline" size="icon" aria-label="Buscar" onClick={() => resource.refetch()}>
-          <Search className="h-4 w-4" />
-        </Button>
-      </div>
+      {filterComponent?.({
+        setExtraParams: resource.setExtraParams,
+        search: resource.search,
+        setSearch: resource.setSearch,
+        refetch: resource.refetch,
+        searchPlaceholder,
+      })}
 
       <DataTable
         columns={columns}
@@ -179,6 +185,7 @@ export function ApiCrudPage<T extends { id: string }, TPayload = Omit<T, "id">>(
           editingItem,
           isSaving: resource.isSaving,
           onSave: handleSubmit as any,
+          refetch: resource.refetch,
         })
       ) : (
         <FormDialog

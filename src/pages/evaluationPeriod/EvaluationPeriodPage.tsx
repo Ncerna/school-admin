@@ -1,8 +1,11 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback } from "react";
 import { ApiCrudPage } from "@/components/shared/ApiCrudPage";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { evaluationPeriodsService } from "@/services/evaluation-periods.service";
 import { EvaluationPeriodFormDialog } from "./EvaluationPeriodFormDialog";
+import { SearchInput } from "@/components/common/SearchInput";
+import { Button } from "@/components/ui/button";
+import { Search } from "lucide-react";
 import type { ColumnDef, EvaluationPeriod, EvaluationPeriodPayload, AcademicYearOption, EvaluationTypeOption } from "@/types";
 
 const columns: ColumnDef<EvaluationPeriod>[] = [
@@ -27,7 +30,6 @@ export default function EvaluationPeriodPage() {
   const [isOptionsLoading, setIsOptionsLoading] = useState(false);
 
   const loadOptions = useCallback(async () => {
-
     setIsOptionsLoading(true);
     try {
       const [years, types] = await Promise.all([
@@ -55,48 +57,49 @@ export default function EvaluationPeriodPage() {
       newLabel="Nuevo período"
       onFormOpen={loadOptions}
       isFormLoading={isOptionsLoading}
-      filterComponent={({ setExtraParams }) => (
-        <div className="mb-4 flex items-end justify-end gap-4">
-          <div className="w-64">
-            <Select value={selectedYearId} onValueChange={(value) => {
-              setSelectedYearId(value);
-              setExtraParams({ yearId: value || undefined, evaluationTypeId: selectedTypeId || undefined });
-            }}>
-              <SelectTrigger>
-                <SelectValue placeholder="Filtrar por año académico" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="">Todos los años</SelectItem>
-                {academicYears.map((year) => (
-                  <SelectItem key={year.id} value={year.id}>
-                    {year.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+      filterComponent={({ setExtraParams, search, setSearch, refetch, searchPlaceholder }) => (
+        <div className="mb-4 flex items-center justify-end gap-2">
+          <Select value={selectedYearId} onValueChange={(value) => {
+            setSelectedYearId(value);
+            setExtraParams({ yearId: value || undefined, evaluationTypeId: selectedTypeId || undefined });
+          }}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Año académico" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="">Todos los años</SelectItem>
+              {academicYears.map((year) => (
+                <SelectItem key={year.id} value={year.id}>
+                  {year.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
 
-          <div className="w-64">
-            <Select value={selectedTypeId} onValueChange={(value) => {
-              setSelectedTypeId(value);
-              setExtraParams({ yearId: selectedYearId || undefined, evaluationTypeId: value || undefined });
-            }}>
-              <SelectTrigger>
-                <SelectValue placeholder="Filtrar por tipo" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="">Todos los tipos</SelectItem>
-                {evaluationTypes.map((type) => (
-                  <SelectItem key={type.id} value={type.id}>
-                    {type.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          <Select value={selectedTypeId} onValueChange={(value) => {
+            setSelectedTypeId(value);
+            setExtraParams({ yearId: selectedYearId || undefined, evaluationTypeId: value || undefined });
+          }}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Tipo" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="">Todos los tipos</SelectItem>
+              {evaluationTypes.map((type) => (
+                <SelectItem key={type.id} value={type.id}>
+                  {type.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <SearchInput value={search} onChange={setSearch} placeholder={searchPlaceholder} />
+          <Button variant="outline" size="icon" aria-label="Buscar" onClick={refetch}>
+            <Search className="h-4 w-4" />
+          </Button>
         </div>
       )}
-      renderFormDialog={({ open, onOpenChange, editingItem, isSaving }) => (
+      renderFormDialog={({ open, onOpenChange, editingItem, isSaving, refetch }) => (
         <EvaluationPeriodFormDialog
           open={open}
           onOpenChange={onOpenChange}
@@ -106,6 +109,7 @@ export default function EvaluationPeriodPage() {
           isOptionsLoading={isOptionsLoading}
           onSuccess={() => {
             onOpenChange(false);
+            refetch();
           }}
         />
       )}
