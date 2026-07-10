@@ -1,9 +1,10 @@
 import type { School, SchoolPayload } from "@/types/school";
 import { apiClient } from "@/lib/api-client";
+import { ENDPOINTS } from "@/lib/endpoints";
 
 class SchoolService {
   async get() {
-    const response = await apiClient.get<School>("/school");
+    const response = await apiClient.get<School>(ENDPOINTS.school);
     return response;
   }
 
@@ -24,7 +25,7 @@ class SchoolService {
     if (data.banner instanceof File) {
       formData.append("banner", data.banner);
     }
-    const response = await apiClient.postForm<School>("/school", formData);
+    const response = await apiClient.postForm<School>(ENDPOINTS.school, formData);
     return response;
   }
 
@@ -55,7 +56,7 @@ class SchoolService {
     if (data.bannerRemove) {
       formData.append("bannerRemove", "true");
     }
-    const response = await apiClient.putForm<School>("/school", formData);
+    const response = await apiClient.putForm<School>(ENDPOINTS.school, formData);
     return response;
   }
 }

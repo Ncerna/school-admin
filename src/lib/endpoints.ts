@@ -25,4 +25,6 @@ export const ENDPOINTS = {
   roles: "/roles",
   menus: "/menus",
   gradeCourses: "/grade-courses",
+  publications: "/publications",
+  school: "/school",
 } as const;

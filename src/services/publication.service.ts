@@ -1,17 +1,18 @@
 import type { Publication, PublicationPayload } from "@/types/publication";
 import { apiClient } from "@/lib/api-client";
+import { ENDPOINTS } from "@/lib/endpoints";
 
 class PublicationService {
   async getAll(params?: { page?: number; search?: string; sortBy?: string; sortDir?: string }) {
     const response = await apiClient.get<{ data: Publication[]; pagination?: { page: number; limit: number; total: number } }>(
-      "/publications",
+      ENDPOINTS.publications,
       { params }
     );
     return response;
   }
 
   async getById(id: string) {
-    const response = await apiClient.get<Publication>(`/publications/${id}`);
+    const response = await apiClient.get<Publication>(`${ENDPOINTS.publications}/${id}`);
     return response;
   }
 
@@ -34,7 +35,7 @@ class PublicationService {
     if (data.isVirtual && data.url) {
       formData.append("url", data.url);
     }
-    const response = await apiClient.postForm<Publication>("/publications", formData);
+    const response = await apiClient.postForm<Publication>(ENDPOINTS.publications, formData);
     return response;
   }
 
@@ -62,16 +63,16 @@ class PublicationService {
     if (data.isVirtual && data.url) {
       formData.append("url", data.url);
     }
-    const response = await apiClient.putForm<Publication>(`/publications/${id}`, formData);
+    const response = await apiClient.putForm<Publication>(`${ENDPOINTS.publications}/${id}`, formData);
     return response;
   }
 
   async remove(id: string) {
-    await apiClient.delete(`/publications/${id}`);
+    await apiClient.delete(`${ENDPOINTS.publications}/${id}`);
   }
 
   async approve(id: string) {
-    const response = await apiClient.patch<Publication>(`/publications/${id}/approve`);
+    const response = await apiClient.patch<Publication>(`${ENDPOINTS.publications}/${id}/approve`);
     return response;
   }
 }

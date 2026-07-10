@@ -4,6 +4,7 @@ import { ApiCrudPage } from "@/components/shared/ApiCrudPage";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { gradeCoursesService } from "@/services/grade-courses.service";
 import { useOptions } from "@/hooks/useOptions";
+import { ENDPOINTS } from "@/lib/endpoints";
 import {
   Dialog,
   DialogContent,
@@ -176,15 +177,15 @@ function GradeCourseFormDialog({
 
 export default function GradeCoursePage() {
   // Load options for the form (academic years, grades, courses)
-  const { options: academicYearOptions, isLoading: yearsLoading, fetch: fetchYears } = useOptions<AcademicYearOption>("/years", (n) => ({
+  const { options: academicYearOptions, isLoading: yearsLoading, fetch: fetchYears } = useOptions<AcademicYearOption>(ENDPOINTS.AcademicYears, (n) => ({
     label: n.name,
     value: String(n.id),
   }));
-  const { options: gradeOptions, isLoading: gradesLoading, fetch: fetchGrades } = useOptions<GradeOption>("/grades", (a) => ({
+  const { options: gradeOptions, isLoading: gradesLoading, fetch: fetchGrades } = useOptions<GradeOption>(ENDPOINTS.grades, (a) => ({
     label: a.name,
     value: String(a.id),
   }));
-  const { options: courseOptions, isLoading: coursesLoading, fetch: fetchCourses } = useOptions<CourseOption>("/courses", (c) => ({
+  const { options: courseOptions, isLoading: coursesLoading, fetch: fetchCourses } = useOptions<CourseOption>(ENDPOINTS.courses, (c) => ({
     label: c.name,
     value: String(c.id),
   }));
