@@ -5,22 +5,27 @@ import { evaluationPeriodsService } from "@/services/evaluation-periods.service"
 import { EvaluationPeriodFormDialog } from "./EvaluationPeriodFormDialog";
 import { SearchInput } from "@/components/common/SearchInput";
 import { Button } from "@/components/ui/button";
+import { StatusBadge } from "@/components/shared/StatusBadge";
 import { Search } from "lucide-react";
 import type { ColumnDef, EvaluationPeriod, EvaluationPeriodPayload, AcademicYearOption, EvaluationTypeOption } from "@/types";
 
 const columns: ColumnDef<EvaluationPeriod>[] = [
-  { header: "Código", accessor: "code", sortable: true },
-  { header: "Período", accessor: "name", sortable: true },
-  { header: "Año Académico", accessor: "academicYear", sortable: true },
+  
+ 
+  { header: "Año Académico", accessor: "yearName", sortable: true },
+   { header: "Cantidad de períodos", accessor: "periodsCount"},
   { header: "Tipo", accessor: "typeName", sortable: true },
   { header: "Fecha Inicio", accessor: "startDate" },
   { header: "Fecha Fin", accessor: "endDate" },
+  { header: "Estado", accessor: "status", render: (item) => <StatusBadge estado={item.status} /> },
+
   {
     header: "Cursando",
     accessor: "isCurrent",
     render: (item) => (item.isCurrent ? "Sí" : "No"),
   },
 ];
+
 
 export default function EvaluationPeriodPage() {
   const [academicYears, setAcademicYears] = useState<AcademicYearOption[]>([]);

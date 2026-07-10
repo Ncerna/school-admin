@@ -56,13 +56,28 @@
 
 /* Scrollbar sutil para listas y sidebar */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 ::-webkit-scrollbar-thumb {
-  background: hsl(var(--border));
+  background: hsl(var(--sidebar-border));
   border-radius: 999px;
 }
 ::-webkit-scrollbar-track {
   background: transparent;
+}
+
+/* Scrollbar utility classes */
+.scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--sidebar-border)) transparent;
+}
+.scrollbar-thumb-sidebar-border::-webkit-scrollbar-thumb {
+  background: hsl(var(--sidebar-border));
+}
+.scrollbar-track-transparent::-webkit-scrollbar-track {
+  background: transparent;
+}
+.hover\:scrollbar-thumb-sidebar-foreground\/20:hover::-webkit-scrollbar-thumb {
+  background: hsl(var(--sidebar-foreground) / 0.2);
 }

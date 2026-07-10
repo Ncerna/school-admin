@@ -7,6 +7,12 @@ interface SidebarContextValue {
   /** Sidebar móvil (sheet) abierto o cerrado */
   mobileOpen: boolean;
   setMobileOpen: (open: boolean) => void;
+  /** Estado de los submenús expandidos (clave: url del item padre) */
+  expandedItems: Record<string, boolean>;
+  /** Toggle submenu expansion */
+  toggleSubmenu: (url: string) => void;
+  /** Set submenu expanded state */
+  setSubmenuExpanded: (url: string, expanded: boolean) => void;
 }
 
 const SidebarContext = React.createContext<SidebarContextValue | null>(null);
@@ -14,6 +20,15 @@ const SidebarContext = React.createContext<SidebarContextValue | null>(null);
 export function SidebarProvider({ children }: { children: React.ReactNode }) {
   const [collapsed, setCollapsed] = React.useState(false);
   const [mobileOpen, setMobileOpen] = React.useState(false);
+  const [expandedItems, setExpandedItems] = React.useState<Record<string, boolean>>({});
+
+  const toggleSubmenu = React.useCallback((url: string) => {
+    setExpandedItems((prev) => ({ ...prev, [url]: !prev[url] }));
+  }, []);
+
+  const setSubmenuExpanded = React.useCallback((url: string, expanded: boolean) => {
+    setExpandedItems((prev) => ({ ...prev, [url]: expanded }));
+  }, []);
 
   const value = React.useMemo<SidebarContextValue>(
     () => ({
@@ -21,8 +36,11 @@ export function SidebarProvider({ children }: { children: React.ReactNode }) {
       toggleCollapsed: () => setCollapsed((prev) => !prev),
       mobileOpen,
       setMobileOpen,
+      expandedItems,
+      toggleSubmenu,
+      setSubmenuExpanded,
     }),
-    [collapsed, mobileOpen]
+    [collapsed, mobileOpen, expandedItems, toggleSubmenu, setSubmenuExpanded]
   );
 
   return <SidebarContext.Provider value={value}>{children}</SidebarContext.Provider>;

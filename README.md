@@ -134,6 +134,51 @@ src/
 4. Agrega la ruta en `App.tsx` y el ítem en
    `src/components/layout/nav-items.ts`.
 
+## 🚀 Despliegue del Frontend
+
+### Build de producción
+```bash
+npm run build
+```
+Esto genera la carpeta `dist/` con archivos estáticos listos para producción.
+
+### Configuración del servidor
+
+La URL del frontend (ej: `https://colegio.com.pe`) **no se configura en el código**, sino en el servidor web donde se despliega.
+
+**nginx ejemplo:**
+```nginx
+server {
+    listen 443 ssl;
+    server_name colegio.com.pe;
+    root /var/www/school-admin/dist;
+    index index.html;
+    
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+}
+```
+
+**Vercel (vercel.json):**
+```json
+{
+  "builds": [{ "src": "package.json", "use": "@vercel/static-build" }],
+  "routes": [{ "handle": "filesystem" }, { "src": ".*", "dest": "/index.html" }]
+}
+```
+
+**Netlify (_redirects):**
+```
+/*    /index.html   200
+```
+
+### Configuración de la API en producción
+Crea un archivo `.env` con la URL de tu API de producción:
+```
+VITE_API_BASE_URL=https://api.colegio.com.pe/api
+```
+
 ## 📦 Stack
 
 - React 19 + Vite 6 + TypeScript
@@ -142,19 +187,3 @@ src/
 - shadcn/ui (Radix UI: Dialog, Dropdown Menu, Select, Avatar, Checkbox...)
 - lucide-react (íconos)
 
-## 📌 Alcance de esta entrega
-
-Se implementaron: Portal Institucional (RF-HU-008), Autenticación con
-monitoreo/renovación de sesión (RF-HU-007), Activación de cuenta y listado
-de estados (RF-HU-004), Students con pantalla dedicada (RF-HU-003),
-Teachers (RF-HU-005), Accesos por rol (RF-HU-006), Shifts (RF-HU-009),
-Años académicos (RF-HU-010), Tipos de evaluación (RF-HU-011), Classrooms
-(RF-HU-014), Grades (RF-HU-015) y Courses (RF-HU-016), todos sobre la
-infraestructura centralizada descrita arriba.
-
-Quedan pendientes (mismo patrón, listos para replicar rápidamente):
-generación de Períodos de Evaluación (RF-HU-012), Asignación de Courses a
-Grades (RF-HU-016b), Datos del Colegio con carga de logo/banner
-(RF-HU-017) y Gestión de Eventos y Publicaciones (RF-HU-018), por requerir
-UI a medida (matrices de selección, generación automática de tablas, carga
-de archivos) fuera del alcance de esta iteración.

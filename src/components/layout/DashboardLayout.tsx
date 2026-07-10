@@ -10,8 +10,21 @@ import { useAuth } from "@/context/AuthContext";
 function usePageTitle() {
   const { pathname } = useLocation();
   if (pathname === "/dashboard") return "Panel general";
-  const match = mainNavItems.find((item) => pathname.startsWith(item.url));
-  return match?.title ?? "Panel general";
+  
+  // Search in main items and submenu items
+  for (const item of mainNavItems) {
+    if (pathname.startsWith(item.url)) {
+      return item.title;
+    }
+    if (item.items) {
+      const subMatch = item.items.find((sub) => pathname.startsWith(sub.url));
+      if (subMatch) {
+        return subMatch.title;
+      }
+    }
+  }
+  
+  return "Panel general";
 }
 
 function LayoutContent() {
