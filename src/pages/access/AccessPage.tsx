@@ -70,6 +70,10 @@ export default function AccessPage() {
       const menuIds = menus.filter((m) => m.assigned).map((m) => m.id);
       await rolesService.updateAccessList(selectedRole.id, menuIds);
       setSuccessMessage("Accesos actualizados correctamente.");
+      // Cerrar el modal automáticamente después de guardar exitosamente
+      setTimeout(() => {
+        setSelectedRole(null);
+      }, 1500);
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "No se pudo guardar los cambios.");
     } finally {

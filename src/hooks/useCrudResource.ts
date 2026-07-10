@@ -30,6 +30,7 @@ export function useCrudResource<TEntity extends { id: string }, TPayload = Parti
   const debouncedSearch = useDebounce(search, 400);
   const [sortBy, setSortBy] = useState<string | undefined>();
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
+  const [extraParams, setExtraParams] = useState<Record<string, unknown>>(options?.extraParams ?? {});
 
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -49,7 +50,7 @@ export function useCrudResource<TEntity extends { id: string }, TPayload = Parti
         search: debouncedSearch,
         sortBy,
         sortDir,
-        ...options?.extraParams,
+        ...extraParams,
       });
       // Handle case when API returns undefined or malformed response
       if (result && result.pagination) {
@@ -66,7 +67,7 @@ export function useCrudResource<TEntity extends { id: string }, TPayload = Parti
       setIsLoading(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page, limit, debouncedSearch, sortBy, sortDir, JSON.stringify(options?.extraParams)]);
+  }, [page, limit, debouncedSearch, sortBy, sortDir, JSON.stringify(extraParams)]);
 
   useEffect(() => {
     // In StrictMode, effects run twice in development. This ref prevents the second run.
@@ -153,5 +154,6 @@ export function useCrudResource<TEntity extends { id: string }, TPayload = Parti
     update,
     remove,
     refetch: fetchPage,
+    setExtraParams,
   };
 }

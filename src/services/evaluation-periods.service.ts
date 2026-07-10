@@ -1,29 +1,18 @@
-import { apiClient } from "@/lib/api-client";
+import { createCrudService } from "@/lib/crud-service";
 import { ENDPOINTS } from "@/lib/endpoints";
-import type { EvaluationPeriod, EvaluationPeriodPayload, AcademicYearOption, EvaluationTypeOption } from "@/types";
+import { apiClient } from "@/lib/api-client";
+import type { EvaluationPeriod, EvaluationPeriodPayload, EvaluationPeriodFormState, AcademicYearOption, EvaluationTypeOption, PaginatedData, ListParams } from "@/types";
 
-// Custom service for evaluation periods (not using generic CRUD due to special endpoints)
+const base = createCrudService<EvaluationPeriod, EvaluationPeriodPayload>(ENDPOINTS.evaluationPeriods);
+
 export const evaluationPeriodsService = {
+  ...base,
   // List evaluation periods with filters
-  list: (params?: { yearId?: string; evaluationTypeId?: string }) =>
-    apiClient.get<EvaluationPeriod[]>(ENDPOINTS.evaluationPeriods, params),
-
-  // Get by ID
+  list: (params?: ListParams & { yearId?: string; evaluationTypeId?: string }) =>
+    apiClient.get<PaginatedData<EvaluationPeriod>>(ENDPOINTS.evaluationPeriods, params),
+  // Get by ID - returns form state for editing
   getById: (id: string) =>
-    apiClient.get<EvaluationPeriod>(`${ENDPOINTS.evaluationPeriods}/${id}`),
-
-  // Create evaluation periods
-  create: (payload: EvaluationPeriodPayload) =>
-    apiClient.post<EvaluationPeriod>(ENDPOINTS.evaluationPeriods, payload),
-
-  // Update evaluation periods
-  update: (id: string, payload: EvaluationPeriodPayload) =>
-    apiClient.put<EvaluationPeriod>(`${ENDPOINTS.evaluationPeriods}/${id}`, payload),
-
-  // Delete (soft delete)
-  remove: (id: string) =>
-    apiClient.delete<null>(`${ENDPOINTS.evaluationPeriods}/${id}`),
-
+    apiClient.get<EvaluationPeriodFormState>(`${ENDPOINTS.evaluationPeriods}/${id}`),
   // Get academic years options
   getAcademicYearsOptions: () =>
     apiClient.get<AcademicYearOption[]>(`${ENDPOINTS.AcademicYears}/options`),

@@ -98,27 +98,20 @@ export function EvaluationPeriodFormDialog({
     setGeneralError(null);
     try {
       // Get the period data - we need to fetch the full form data
-      const response = await fetch(
-        `${import.meta.env.VITE_API_BASE_URL ?? "http://127.0.0.1:8000/api"}/evaluation-periods/${id}`
+      const periodData = await evaluationPeriodsService.getById(id);
+      setYearId(String(periodData.yearId));
+      setEvaluationTypeId(String(periodData.evaluationTypeId));
+      setPeriodsCount(periodData.periodsCount);
+      setPeriods(
+        periodData.periods.map((p: any) => ({
+          id: p.id,
+          code: p.code,
+          name: p.name,
+          startDate: p.startDate,
+          endDate: p.endDate,
+          isCurrent: p.isCurrent,
+        }))
       );
-      const data = await response.json();
-      
-      if (data.success && data.data) {
-        const periodData = data.data;
-        setYearId(periodData.yearId);
-        setEvaluationTypeId(periodData.evaluationTypeId);
-        setPeriodsCount(periodData.periodsCount);
-        setPeriods(
-          periodData.periods.map((p: any) => ({
-            id: p.id,
-            code: p.code,
-            name: p.name,
-            startDate: p.startDate,
-            endDate: p.endDate,
-            isCurrent: p.isCurrent,
-          }))
-        );
-      }
     } catch (err) {
       setGeneralError(err instanceof ApiError ? err.message : "No se pudo cargar el período.");
     } finally {
@@ -126,20 +119,27 @@ export function EvaluationPeriodFormDialog({
     }
   }
 
-  // Handle evaluation type change - auto-set periods count
+  // Handle evaluation type change
   function handleEvaluationTypeChange(value: string) {
     setEvaluationTypeId(value);
-    const selectedType = evaluationTypes.find((t) => t.id === value);
-    if (selectedType) {
-      setPeriodsCount(selectedType.periodsCount);
-    }
+  }
+
+  // Handle year change - set periodsCount from selected academic year
+  function handleYearChange(value: string) {
+   setYearId(value);
+    // Get periodsCount from selected academic year, default to 4 if 0 or null
+    const selectedYear = academicYears.find((y) => String(y.id) === String(value));
+ 
+    const count = selectedYear?.periodsCount ?? 1;
+    
+    setPeriodsCount(count);
   }
 
   // Generate periods
   function handleGenerate() {
     if (!yearId || !evaluationTypeId || periodsCount <= 0) return;
 
-    const selectedType = evaluationTypes.find((t) => t.id === evaluationTypeId);
+    const selectedType = evaluationTypes.find((t) => String(t.id) === String(evaluationTypeId));
     const typeName = selectedType?.name || "Período";
     
     const today = new Date();
@@ -148,6 +148,7 @@ export function EvaluationPeriodFormDialog({
     for (let i = 1; i <= periodsCount; i++) {
       const startDate = addMonths(new Date(today), i - 1);
       const endDate = addMonths(new Date(today), i);
+      endDate.setDate(endDate.getDate() - 1);
       
       newPeriods.push({
         code: `${typeName.substring(0, 3).toUpperCase()}-${toRoman(i)}`,
@@ -158,7 +159,7 @@ export function EvaluationPeriodFormDialog({
       });
     }
     
-    setPeriods(newPeriods);
+   setPeriods(newPeriods);
   }
 
   // Handle date change
@@ -170,9 +171,10 @@ export function EvaluationPeriodFormDialog({
 
   // Handle isCurrent change - only one can be current
   function handleIsCurrentChange(index: number, checked: boolean) {
-    setPeriods((prev) =>
-      prev.map((p, i) => ({ ...p, isCurrent: i === index ? checked : false }))
-    );
+   setPeriods((prev) => {
+      const newPeriods = prev.map((p, i) => ({ ...p, isCurrent: i === index ? checked : false }));
+      return newPeriods;
+    });
   }
 
   // Handle save
@@ -212,12 +214,20 @@ export function EvaluationPeriodFormDialog({
 
   // Handle cancel
   function handleCancel() {
+   
     setPeriods([]);
     onOpenChange(false);
   }
 
+  // Wrapper for onOpenChange to debug
+  function handleDialogOpenChange(newOpen: boolean) {
+    onOpenChange(newOpen);
+  }
+
+  // Debug: Log current state on every render
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleDialogOpenChange}>
       <DialogContent className="max-w-4xl">
         <form onSubmit={handleSubmit} className="flex flex-col h-full">
           <DialogHeader>
@@ -246,7 +256,7 @@ export function EvaluationPeriodFormDialog({
                   <Label>Año Académico <span className="text-destructive">*</span></Label>
                   <Select
                     value={yearId}
-                    onValueChange={setYearId}
+                    onValueChange={handleYearChange}
                     disabled={isOptionsLoading || isEditing}
                   >
                     <SelectTrigger>
@@ -254,7 +264,7 @@ export function EvaluationPeriodFormDialog({
                     </SelectTrigger>
                     <SelectContent>
                       {academicYears.map((year) => (
-                        <SelectItem key={year.id} value={year.id}>
+                        <SelectItem key={year.id} value={String(year.id)}>
                           {year.name}
                         </SelectItem>
                       ))}
@@ -274,7 +284,7 @@ export function EvaluationPeriodFormDialog({
                     </SelectTrigger>
                     <SelectContent>
                       {evaluationTypes.map((type) => (
-                        <SelectItem key={type.id} value={type.id}>
+                        <SelectItem key={type.id} value={String(type.id)}>
                           {type.name}
                         </SelectItem>
                       ))}
@@ -318,7 +328,7 @@ export function EvaluationPeriodFormDialog({
                     </thead>
                     <tbody>
                       {periods.map((period, index) => (
-                        <tr key={index} className="border-t">
+                        <tr key={period.code} className="border-t">
                           <td className="px-3 py-2 text-sm">{period.name}</td>
                           <td className="px-3 py-2">
                             <div className="flex items-center gap-2">
@@ -347,7 +357,7 @@ export function EvaluationPeriodFormDialog({
                           <td className="px-3 py-2">
                             <Checkbox
                               checked={period.isCurrent}
-                              onCheckedChange={(checked) => handleIsCurrentChange(index, Boolean(checked))}
+                              onCheckedChange={() => handleIsCurrentChange(index, !period.isCurrent)}
                             />
                           </td>
                         </tr>

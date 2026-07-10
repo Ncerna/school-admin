@@ -37,6 +37,7 @@ const emptyItem: AcademicYearPayload = {
   status: "Activo",
   enrollmentStatus: "Activo",
   shiftIds: [],
+  periodCount: 1,
 };
 
 export default function AcademicYearPage() {
@@ -60,8 +61,9 @@ export default function AcademicYearPage() {
   useEffect(() => {
     if (formOpen) {
       // Ensure shiftIds are always numbers (API may return numbers)
+      // Ensure periodCount has a default value
       const itemData = editingItem
-        ? { ...editingItem, shiftIds: editingItem.shiftIds.map(Number) }
+        ? { ...editingItem, shiftIds: editingItem.shiftIds.map(Number), periodCount: editingItem.periodCount ?? 1 }
         : emptyItem;
       setValues(itemData);
       setFieldErrors({});
@@ -250,20 +252,35 @@ export default function AcademicYearPage() {
                   )}
                 </div>
               </div>
-              <div className="grid gap-1.5">
-                <Label>Estado de matrícula</Label>
-                <Select value={values.enrollmentStatus} onValueChange={(v) => setValues((p) => ({ ...p, enrollmentStatus: v as "Activo" | "Inactivo" }))}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Activo">Activo</SelectItem>
-                    <SelectItem value="Inactivo">Inactivo</SelectItem>
-                  </SelectContent>
-                </Select>
-                {fieldErrors.enrollmentStatus && (
-                  <p className="text-xs text-destructive">{fieldErrors.enrollmentStatus[0]}</p>
-                )}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-1.5">
+                  <Label>Estado de matrícula</Label>
+                  <Select value={values.enrollmentStatus} onValueChange={(v) => setValues((p) => ({ ...p, enrollmentStatus: v as "Activo" | "Inactivo" }))}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Activo">Activo</SelectItem>
+                      <SelectItem value="Inactivo">Inactivo</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  {fieldErrors.enrollmentStatus && (
+                    <p className="text-xs text-destructive">{fieldErrors.enrollmentStatus[0]}</p>
+                  )}
+                </div>
+                <div className="grid gap-1.5">
+                  <Label>Cantidad de períodos</Label>
+                  <Input
+                    type="number"
+                    min="1"
+                    value={values.periodCount}
+                    onChange={(e) => setValues((p) => ({ ...p, periodCount: parseInt(e.target.value) || 1 }))}
+                    placeholder="Ej. 3"
+                  />
+                  {fieldErrors.periodCount && (
+                    <p className="text-xs text-destructive">{fieldErrors.periodCount[0]}</p>
+                  )}
+                </div>
               </div>
               <div className="grid gap-1.5">
                 <Label>Turnos activos</Label>

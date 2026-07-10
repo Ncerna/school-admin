@@ -4,14 +4,14 @@ import { apiClient } from "@/lib/api-client";
 class PublicationService {
   async getAll(params?: { page?: number; search?: string; sortBy?: string; sortDir?: string }) {
     const response = await apiClient.get<{ data: Publication[]; pagination?: { page: number; limit: number; total: number } }>(
-      "/api/publications",
+      "/publications",
       { params }
     );
     return response;
   }
 
   async getById(id: string) {
-    const response = await apiClient.get<Publication>(`/api/publications/${id}`);
+    const response = await apiClient.get<Publication>(`/publications/${id}`);
     return response;
   }
 
@@ -34,7 +34,7 @@ class PublicationService {
     if (data.isVirtual && data.url) {
       formData.append("url", data.url);
     }
-    const response = await apiClient.postForm<Publication>("/api/publications", formData);
+    const response = await apiClient.postForm<Publication>("/publications", formData);
     return response;
   }
 
@@ -62,16 +62,16 @@ class PublicationService {
     if (data.isVirtual && data.url) {
       formData.append("url", data.url);
     }
-    const response = await apiClient.putForm<Publication>(`/api/publications/${id}`, formData);
+    const response = await apiClient.putForm<Publication>(`/publications/${id}`, formData);
     return response;
   }
 
   async remove(id: string) {
-    await apiClient.delete(`/api/publications/${id}`);
+    await apiClient.delete(`/publications/${id}`);
   }
 
   async approve(id: string) {
-    const response = await apiClient.patch<Publication>(`/api/publications/${id}/approve`);
+    const response = await apiClient.patch<Publication>(`/publications/${id}/approve`);
     return response;
   }
 }

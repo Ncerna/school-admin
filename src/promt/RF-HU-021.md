@@ -1,4 +1,4 @@
-RF-HU-021-BE - Asisgnacion de cursos alos grados.
+RF-HU-021-BE - Asisgnacion de cursos alos grados. todo codigo en ingles.
 
 sequiere asignar cursos alos grado y guardar este regitro la tabal debe tener estos columna:
 

@@ -68,12 +68,13 @@ export interface AcademicYear {
   status: Status;
   enrollmentStatus: Status;
   shiftIds: number[];
+  periodCount?: number;
 }
 
 export interface EvaluationType {
   id: string;
   name: string;
-  periods_count: number;
+
   status: Status;
   inUse?: boolean;
 }
@@ -176,6 +177,9 @@ export type { PaginatedData, PaginationMeta, ListParams } from "./api";
 
 // Re-export Evaluation Period types
 export type { EvaluationPeriod, EvaluationPeriodPayload, EvaluationPeriodFormState, AcademicYearOption, EvaluationTypeOption } from "./evaluation-period";
+
+// Re-export Grade Course types
+export type { GradeCourse, GradeCoursePayload, AcademicYearOption as GradeCourseAcademicYearOption, GradeOption, CourseOption } from "./grade-course";
 
 // Type aliases for backward compatibility (Spanish names)
 export type { Level as Nivel, Grade as Grado, Classroom as Aula, Course as Curso, Shift as Turno, AcademicYear as AnioAcademico, EvaluationType as TipoEvaluacion, Role as Rol, MenuAccess as MenuAcceso, Teacher as Docente, Student as Estudiante, Guardian as Apoderado, School as Colegio, Publication as Publicacion };

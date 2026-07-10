@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { useCrudResource } from "@/hooks/useCrudResource";
 import { ApiError } from "@/types/api";
 import type { ColumnDef, FieldDef } from "@/types";
+import type { ReactNode } from "react";
 
 interface CrudApi<T, TPayload> {
   list: (params?: any) => Promise<any>;
@@ -32,6 +33,16 @@ interface ApiCrudPageProps<T extends { id: string }, TPayload = Omit<T, "id">> {
   onFormOpen?: () => void;
   /** Whether the form options are still loading */
   isFormLoading?: boolean;
+  /** Custom filter component to render above the table */
+  filterComponent?: (props: { setExtraParams: (params: Record<string, unknown>) => void }) => ReactNode;
+  /** Custom form dialog component (for complex forms) - if not provided, uses default FormDialog */
+  renderFormDialog?: (props: {
+    open: boolean;
+    onOpenChange: (open: boolean) => void;
+    editingItem: T | null;
+    isSaving: boolean;
+    onSave: (values: TPayload) => Promise<void>;
+  }) => ReactNode;
 }
 
 /**
@@ -51,6 +62,8 @@ export function ApiCrudPage<T extends { id: string }, TPayload = Omit<T, "id">>(
   newLabel = "Nuevo",
   onFormOpen,
   isFormLoading = false,
+  filterComponent,
+  renderFormDialog,
 }: ApiCrudPageProps<T, TPayload>) {
   const resource = useCrudResource<T, TPayload>(api);
   const [formOpen, setFormOpen] = useState(false);
@@ -133,6 +146,8 @@ export function ApiCrudPage<T extends { id: string }, TPayload = Omit<T, "id">>(
         </div>
       )}
 
+      {filterComponent?.({ setExtraParams: resource.setExtraParams })}
+
       <div className="mb-4 flex items-center justify-end gap-2">
         <SearchInput value={resource.search} onChange={resource.setSearch} placeholder={searchPlaceholder} />
         <Button variant="outline" size="icon" aria-label="Buscar" onClick={() => resource.refetch()}>
@@ -157,21 +172,31 @@ export function ApiCrudPage<T extends { id: string }, TPayload = Omit<T, "id">>(
 
       <Pagination pagination={resource.pagination} onPageChange={resource.setPage} disabled={resource.isLoading} />
 
-      <FormDialog
-        open={formOpen}
-        onOpenChange={setFormOpen}
-        title={editingItem ? `Editar ${title.slice(0, -1) || title}` : "Nuevo registro"}
-        description={
-          editingItem ? "Actualiza la información y guarda los cambios." : "Completa los datos para crear el registro."
-        }
-        fields={fields}
-        initialValues={formInitialValues}
-        onSubmit={handleSubmit}
-        submitLabel={editingItem ? "Guardar cambios" : "Crear"}
-        isSubmitting={resource.isSaving}
-        serverErrors={formErrors}
-        isFormLoading={isFormLoading}
-      />
+      {renderFormDialog ? (
+        renderFormDialog({
+          open: formOpen,
+          onOpenChange: setFormOpen,
+          editingItem,
+          isSaving: resource.isSaving,
+          onSave: handleSubmit as any,
+        })
+      ) : (
+        <FormDialog
+          open={formOpen}
+          onOpenChange={setFormOpen}
+          title={editingItem ? `Editar ${title.slice(0, -1) || title}` : "Nuevo registro"}
+          description={
+            editingItem ? "Actualiza la información y guarda los cambios." : "Completa los datos para crear el registro."
+          }
+          fields={fields}
+          initialValues={formInitialValues}
+          onSubmit={handleSubmit}
+          submitLabel={editingItem ? "Guardar cambios" : "Crear"}
+          isSubmitting={resource.isSaving}
+          serverErrors={formErrors}
+          isFormLoading={isFormLoading}
+        />
+      )}
 
       <ConfirmDialog
         open={!!deleteTarget}

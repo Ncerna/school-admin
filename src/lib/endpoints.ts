@@ -10,7 +10,7 @@ export const ENDPOINTS = {
     activate: "/auth/activate",
   },
   accounts: {
-    activationStatus: "/accounts/activation-status",
+    activationStatus: "/users/pending-activation",
   },
   students: "/students",
   teachers: "/teachers",
@@ -24,4 +24,5 @@ export const ENDPOINTS = {
   evaluationPeriods: "/evaluation-periods",
   roles: "/roles",
   menus: "/menus",
+  gradeCourses: "/grade-courses",
 } as const;
