@@ -158,4 +158,3 @@ Grades (RF-HU-016b), Datos del Colegio con carga de logo/banner
 (RF-HU-017) y Gestión de Eventos y Publicaciones (RF-HU-018), por requerir
 UI a medida (matrices de selección, generación automática de tablas, carga
 de archivos) fuera del alcance de esta iteración.
-

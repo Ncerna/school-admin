@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { ApiCrudPage } from "@/components/shared/ApiCrudPage";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { evaluationPeriodsService } from "@/services/evaluation-periods.service";
@@ -27,13 +27,12 @@ export default function EvaluationPeriodPage() {
   const [isOptionsLoading, setIsOptionsLoading] = useState(false);
 
   const loadOptions = useCallback(async () => {
-      console.log("loadOptions");
+
     setIsOptionsLoading(true);
     try {
       const [years, types] = await Promise.all([
         evaluationPeriodsService.getAcademicYearsOptions(),
         evaluationPeriodsService.getEvaluationTypesOptions(),
-       
       ]);
       setAcademicYears(years);
       setEvaluationTypes(types);

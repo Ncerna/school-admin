@@ -1,22 +1,23 @@
 import { apiClient } from "@/lib/api-client";
+import { createCrudService } from "@/lib/crud-service";
 import { ENDPOINTS } from "@/lib/endpoints";
 import type { GradeCourse, GradeCoursePayload, AcademicYearOption, GradeOption, CourseOption } from "@/types/grade-course";
-import type { PaginatedData, ListParams } from "@/types/api";
 
 const base = ENDPOINTS.gradeCourses;
 
+// CRUD service for the main entity
+const crudService = createCrudService<GradeCourse, GradeCoursePayload>(base);
+
 export const gradeCoursesService = {
-  // Get assigned courses with filters
-  list: (params?: ListParams & { yearId?: number; gradeId?: number }) =>
-    apiClient.get<PaginatedData<GradeCourse>>(base, params),
+  // Inherit list, getById, update, remove from crudService
+  list: crudService.list,
+  getById: crudService.getById,
+  update: crudService.update,
+  remove: crudService.remove,
 
-  // Assign courses to a grade
-  assign: (payload: GradeCoursePayload) =>
-    apiClient.post<{ success: boolean; message: string }>(base, payload),
-
-  // Remove a course assignment
-  remove: (id: string) =>
-    apiClient.delete<null>(`${base}/${id}`),
+  // Override create to use assign endpoint (returns GradeCourse on success)
+  create: (payload: GradeCoursePayload) =>
+    apiClient.post<GradeCourse>(base, payload),
 
   // Get academic years options
   getAcademicYears: () =>
