@@ -23,7 +23,9 @@ export interface EvaluationPeriod {
   endDate: string;
   isCurrent: boolean;
   academicYear: string;
+  yearName: string;
   typeName: string;
+  periodsCount: number;
   status?: Status;
 }
 

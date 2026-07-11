@@ -1,4 +1,4 @@
-import { Pencil, Trash2, Inbox, ArrowUp, ArrowDown, ArrowUpDown, Loader2 } from "lucide-react";
+import { Pencil, Trash2, Inbox, ArrowUp, ArrowDown, ArrowUpDown, Loader2, Eye } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -29,6 +29,8 @@ interface DataTableProps<T extends { id: string }> {
   currentPage?: number;
   /** Number of items per page. */
   itemsPerPage?: number;
+  /** Callback for viewing item details. */
+  onViewDetails?: (item: T) => void;
 }
 
 export function DataTable<T extends { id: string }>({
@@ -36,6 +38,7 @@ export function DataTable<T extends { id: string }>({
   data,
   onEdit,
   onDelete,
+  onViewDetails,
   emptyMessage = "No hay registros todavía.",
   isLoading = false,
   deletingId = null,
@@ -133,7 +136,33 @@ export function DataTable<T extends { id: string }>({
                   {col.render ? col.render(item) : String(item[col.accessor] ?? "—")}
                 </TableCell>
               ))}
-              {!hideRowActions && (
+              {!hideRowActions && onViewDetails && (
+                <TableCell className="text-right py-2">
+                  <div className="flex justify-end gap-1">
+                    <Button variant="ghost" size="icon" aria-label="Ver detalles" onClick={() => onViewDetails(item)}>
+                      <Eye className="h-4 w-4" />
+                    </Button>
+                    <Button variant="ghost" size="icon" aria-label="Editar" onClick={() => onEdit(item)}>
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      aria-label="Eliminar"
+                      disabled={deletingId === item.id}
+                      className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                      onClick={() => onDelete(item)}
+                    >
+                      {deletingId === item.id ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Trash2 className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </div>
+                </TableCell>
+              )}
+              {!hideRowActions && !onViewDetails && (
                 <TableCell className="text-right py-2">
                   <div className="flex justify-end gap-1">
                     <Button variant="ghost" size="icon" aria-label="Editar" onClick={() => onEdit(item)}>
