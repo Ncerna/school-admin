@@ -12,6 +12,9 @@ import { useCrudResource } from "@/hooks/useCrudResource";
 import { teachersService } from "@/services/teachers.service";
 import type { ColumnDef, Teacher } from "@/types";
 
+// Extend Teacher type to include the id for navigation state
+type TeacherWithId = Teacher & { id: string };
+
 export default function TeachersPage() {
   const navigate = useNavigate();
   const resource = useCrudResource<Teacher>(teachersService);
@@ -70,7 +73,7 @@ export default function TeachersPage() {
       <DataTable
         columns={columns}
         data={resource.items}
-        onEdit={(item) => navigate(`/docentes/${item.id}/editar`)}
+        onEdit={(item) => navigate("/docentes/editar", { state: { teacherId: item.id } })}
         onDelete={(item) => setDeleteTarget(item)}
         isLoading={resource.isLoading}
         deletingId={resource.deletingId}

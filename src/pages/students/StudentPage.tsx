@@ -69,7 +69,7 @@ export default function StudentsPage() {
       <DataTable
         columns={columns}
         data={resource.items}
-        onEdit={(item) => navigate(`/estudiantes/${item.id}/editar`)}
+        onEdit={(item) => navigate("/estudiantes/editar", { state: { studentId: item.id } })}
         onDelete={(item) => setDeleteTarget(item)}
         emptyMessage={resource.search ? "No se encontraron resultados." : "No hay estudiantes registrados todavía."}
         isLoading={resource.isLoading}

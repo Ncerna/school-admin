@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent, useRef } from "react";
-import { useNavigate, useParams, Link } from "react-router-dom";
+import { useNavigate, Link, useLocation } from "react-router-dom";
 import { ArrowLeft, Save, X } from "lucide-react";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { Card, CardContent } from "@/components/ui/card";
@@ -39,8 +39,9 @@ const errorFieldMap: Record<string, string> = {
 
 export default function StudentFormPage() {
   const navigate = useNavigate();
-  const { id } = useParams<{ id: string }>();
-  const isEditing = Boolean(id);
+  const location = useLocation();
+  const studentId = (location.state as { studentId?: string })?.studentId;
+  const isEditing = Boolean(studentId);
 
   const [values, setValues] = useState<StudentPayload>(emptyStudent);
 
@@ -59,17 +60,17 @@ export default function StudentFormPage() {
   const isFirstRender = useRef(true);
 
   useEffect(() => {
-    if (!id) return;
+    if (!studentId) return;
     if (isFirstRender.current) {
       isFirstRender.current = false;
       setIsLoading(true);
       studentsService
-        .getById(id)
+        .getById(studentId)
         .then((student) => setValues(student))
         .catch((err) => setGeneralError(err instanceof ApiError ? err.message : "No se pudo cargar el estudiante."))
         .finally(() => setIsLoading(false));
     }
-  }, [id]);
+  }, [studentId]);
 
   function updateField(key: string, value: string | boolean) {
     setValues((prev) => ({ ...prev, [key]: value }));
@@ -88,8 +89,8 @@ export default function StudentFormPage() {
     setGeneralError(null);
     setIsSaving(true);
     try {
-      if (isEditing && id) {
-        await studentsService.update(id, values);
+      if (isEditing && studentId) {
+        await studentsService.update(studentId, values);
       } else {
         await studentsService.create(values);
       }

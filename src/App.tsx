@@ -85,7 +85,7 @@ export default function App() {
                   <StudentFormPage />
                 </Suspense>
               } />
-              <Route path="/estudiantes/:id/editar" element={
+              <Route path="/estudiantes/editar" element={
                 <Suspense fallback={<PageLoader />}>
                   <StudentFormPage />
                 </Suspense>
@@ -101,7 +101,7 @@ export default function App() {
                   <TeacherFormPage />
                 </Suspense>
               } />
-              <Route path="/docentes/:id/editar" element={
+              <Route path="/docentes/editar" element={
                 <Suspense fallback={<PageLoader />}>
                   <TeacherFormPage />
                 </Suspense>
