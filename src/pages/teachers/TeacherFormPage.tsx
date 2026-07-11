@@ -19,6 +19,12 @@ const emptyTeacher: TeacherPayload = {
   specialty: "",
   email: "",
   phone: "",
+  bank: "",
+  accountNumber: "",
+  accountHolder: "",
+  pensionEntity: undefined,
+  onPayroll: false,
+  paymentFrequency: undefined,
 };
 
 // Map API error field names to local field names
@@ -58,8 +64,8 @@ export default function TeacherFormPage() {
     }
   }, [id]);
 
-  function updateField(key: string, value: string | boolean) {
-    setValues((prev) => ({ ...prev, [key]: value }));
+  function updateField(key: string, value: string | boolean | undefined) {
+    setValues((prev) => ({ ...prev, [key]: value as any }));
   }
 
   async function handleSubmit(e: FormEvent) {
@@ -160,12 +166,103 @@ export default function TeacherFormPage() {
                     <SelectValue placeholder="Selecciona" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Nombrado">Nombrado</SelectItem>
-                    <SelectItem value="Contratado">Contratado</SelectItem>
-                    <SelectItem value="Auxiliar">Auxiliar</SelectItem>
+                    <SelectItem value="Matemática">Matemática</SelectItem>
+                    <SelectItem value="Comunicación">Comunicación</SelectItem>
+                    <SelectItem value="Ciencia y Tecnología">Ciencia y Tecnología</SelectItem>
+                    <SelectItem value="Ciencias Sociales">Ciencias Sociales</SelectItem>
+                    <SelectItem value="Educación Física">Educación Física</SelectItem>
+                    <SelectItem value="Arte">Arte</SelectItem>
+                    <SelectItem value="Música">Música</SelectItem>
+                    <SelectItem value="Otros">Otros</SelectItem>
                   </SelectContent>
                 </Select>
                 {fieldError("specialty") && <p className="text-xs text-destructive">{fieldError("specialty")}</p>}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Laboral and Bank Information Section */}
+          <Card>
+            <CardContent className="grid gap-4 pt-6 sm:grid-cols-2">
+              <h3 className="col-span-full text-sm font-semibold text-muted-foreground">Información Laboral y Bancaria</h3>
+
+              <div className="grid gap-1.5">
+                <Label>Banco</Label>
+                <Input 
+                  value={values.bank || ""} 
+                  onChange={(e) => updateField("bank", e.target.value)} 
+                  placeholder="Nombre del banco"
+                />
+                {fieldError("bank") && <p className="text-xs text-destructive">{fieldError("bank")}</p>}
+              </div>
+
+              <div className="grid gap-1.5">
+                <Label>Número de cuenta</Label>
+                <Input 
+                  value={values.accountNumber || ""} 
+                  onChange={(e) => updateField("accountNumber", e.target.value)} 
+                  placeholder="Número de cuenta bancaria"
+                />
+                {fieldError("accountNumber") && <p className="text-xs text-destructive">{fieldError("accountNumber")}</p>}
+              </div>
+
+              <div className="grid gap-1.5">
+                <Label>Titular de la cuenta</Label>
+                <Input 
+                  value={values.accountHolder || `${values.firstName} ${values.lastName}`} 
+                  onChange={(e) => updateField("accountHolder", e.target.value)} 
+                  placeholder="Nombre completo del titular"
+                />
+                {fieldError("accountHolder") && <p className="text-xs text-destructive">{fieldError("accountHolder")}</p>}
+              </div>
+
+              <div className="grid gap-1.5">
+                <Label>Entidad previsional</Label>
+                <Select value={values.pensionEntity} onValueChange={(v) => updateField("pensionEntity", v)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecciona AFP" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="AFP Integra">AFP Integra</SelectItem>
+                    <SelectItem value="Prima AFP">Prima AFP</SelectItem>
+                    <SelectItem value="Profuturo AFP">Profuturo AFP</SelectItem>
+                    <SelectItem value="Habitat AFP">Habitat AFP</SelectItem>
+                    <SelectItem value="ONP">ONP</SelectItem>
+                    <SelectItem value="Otros">Otros</SelectItem>
+                  </SelectContent>
+                </Select>
+                {fieldError("pensionEntity") && <p className="text-xs text-destructive">{fieldError("pensionEntity")}</p>}
+              </div>
+
+              <div className="grid gap-1.5">
+                <Label>En planilla</Label>
+                <Select value={values.onPayroll ? "true" : "false"} onValueChange={(v) => updateField("onPayroll", v === "true")}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecciona" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="true">Sí</SelectItem>
+                    <SelectItem value="false">No</SelectItem>
+                  </SelectContent>
+                </Select>
+                {fieldError("onPayroll") && <p className="text-xs text-destructive">{fieldError("onPayroll")}</p>}
+              </div>
+
+              <div className="grid gap-1.5">
+                <Label>Frecuencia de pago</Label>
+                <Select value={values.paymentFrequency} onValueChange={(v) => updateField("paymentFrequency", v)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecciona frecuencia" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Mensual">Mensual</SelectItem>
+                    <SelectItem value="Quincenal">Quincenal</SelectItem>
+                    <SelectItem value="Semanal">Semanal</SelectItem>
+                    <SelectItem value="Diario">Diario</SelectItem>
+                    <SelectItem value="Por hora">Por hora</SelectItem>
+                  </SelectContent>
+                </Select>
+                {fieldError("paymentFrequency") && <p className="text-xs text-destructive">{fieldError("paymentFrequency")}</p>}
               </div>
             </CardContent>
           </Card>

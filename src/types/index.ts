@@ -101,6 +101,13 @@ export interface Teacher {
   email: string;
   phone: string;
   status: Status;
+  // Optional laboral and bank information
+  bank?: string;
+  accountNumber?: string;
+  accountHolder?: string;
+  pensionEntity?: "AFP Integra" | "Prima AFP" | "Profuturo AFP" | "Habitat AFP" | "ONP" | "Otros";
+  onPayroll?: boolean;
+  paymentFrequency?: "Mensual" | "Quincenal" | "Semanal" | "Diario" | "Por hora";
 }
 
 export type Gender = "male" | "female";
