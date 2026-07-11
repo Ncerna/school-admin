@@ -39,17 +39,23 @@ export interface EvaluationPeriodPayload {
   }[];
 }
 
-// Form state for the modal
+// Form state for the modal (API returns { header: {...}, periods: [...] })
 export interface EvaluationPeriodFormState {
-  yearId: string;
-  yearName: string;
-  evaluationTypeId: string;
-  typeName: string;
-  periodsCount: number;
+  header: {
+    id: string;
+    yearId: string;
+    yearName: string;
+    evaluationTypeId: string;
+    typeName: string;
+    periodsCount: number;
+    status?: Status;
+    startDate?: string;
+    endDate?: string;
+  };
   periods: {
     id?: string;
     code: string;
-    name: string;
+    name?: string;
     startDate: string;
     endDate: string;
     isCurrent: boolean;
