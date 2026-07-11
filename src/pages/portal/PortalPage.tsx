@@ -17,7 +17,7 @@ export default function PortalPage() {
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4">
           <div className="flex items-center gap-2 font-semibold">
             <GraduationCap className="h-6 w-6 text-primary" />
-            <span>Colegio San Martín</span>
+            <span>I.E.P Sir Isaac Newton</span>
           </div>
 
           <nav className="hidden items-center gap-6 text-sm font-medium text-muted-foreground md:flex">
@@ -47,7 +47,7 @@ export default function PortalPage() {
 
       <main>
         <section id="inicio" className="mx-auto max-w-6xl px-4 py-16 text-center">
-          <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">Bienvenidos al Colegio San Martín</h1>
+          <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">Bienvenidos al I.E.P Sir Isaac Newton</h1>
           <p className="mx-auto mt-4 max-w-2xl text-muted-foreground">
             Formando Students con excelencia académica y valores para el futuro. Conoce nuestras noticias,
             eventos y logros institucionales.
@@ -121,7 +121,7 @@ export default function PortalPage() {
       </main>
 
       <footer className="border-t py-6 text-center text-xs text-muted-foreground">
-        © {new Date().getFullYear()} Colegio San Martín. Todos los derechos reservados.
+        © {new Date().getFullYear()} I.E.P Sir Isaac Newton . Todos los derechos reservados.
       </footer>
     </div>
   );

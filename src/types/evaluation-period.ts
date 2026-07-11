@@ -44,7 +44,7 @@ export interface EvaluationPeriodFormState {
   yearId: string;
   yearName: string;
   evaluationTypeId: string;
-  evaluationTypeName: string;
+  typeName: string;
   periodsCount: number;
   periods: {
     id?: string;

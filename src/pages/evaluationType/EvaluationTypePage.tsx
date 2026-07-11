@@ -7,11 +7,7 @@ const columns: ColumnDef<EvaluationType>[] = [
   { header: "Nombre", accessor: "name", sortable: true },
 
   { header: "Estado", accessor: "status", render: (item) => <StatusBadge estado={item.status} /> },
-  {
-    header: "En uso",
-    accessor: "inUse",
-    render: (item) => (item.inUse ? "Sí" : "No"),
-  },
+ 
 ];
 
 const fields: FieldDef<EvaluationType>[] = [

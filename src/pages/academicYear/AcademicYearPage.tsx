@@ -35,7 +35,7 @@ const emptyItem: AcademicYearPayload = {
   startDate: "",
   endDate: "",
   status: "Activo",
-  enrollmentStatus: "Activo",
+  enrollmentStatus: "OPEN",
   shiftIds: [],
   periodCount: 1,
 };
@@ -255,13 +255,13 @@ export default function AcademicYearPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-1.5">
                   <Label>Estado de matrícula</Label>
-                  <Select value={values.enrollmentStatus} onValueChange={(v) => setValues((p) => ({ ...p, enrollmentStatus: v as "Activo" | "Inactivo" }))}>
+                  <Select value={values.enrollmentStatus} onValueChange={(v) => setValues((p) => ({ ...p, enrollmentStatus: v as "OPEN" | "CLOSED" }))}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="Activo">Activo</SelectItem>
-                      <SelectItem value="Inactivo">Inactivo</SelectItem>
+                      <SelectItem value="OPEN">Activo</SelectItem>
+                      <SelectItem value="CLOSED">Inactivo</SelectItem>
                     </SelectContent>
                   </Select>
                   {fieldErrors.enrollmentStatus && (

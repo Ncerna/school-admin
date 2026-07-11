@@ -20,7 +20,7 @@ function Brand({ collapsed }: { collapsed: boolean }) {
         </div>
         {!collapsed && (
           <div className="flex flex-col leading-tight">
-            <span className="text-base font-semibold text-sidebar-foreground">I.E. San Martín</span>
+            <span className="text-base font-semibold text-sidebar-foreground">I.E.P Isaac Newton </span>
             <span className="text-xs font-medium text-sidebar-foreground/60">Panel administrativo</span>
           </div>
         )}

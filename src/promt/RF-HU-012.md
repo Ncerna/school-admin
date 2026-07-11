@@ -116,7 +116,7 @@ La respuesta incluirá:
   - `yearId`
   - `yearName`
   - `evaluationTypeId`
-  - `evaluationTypeName`
+  - `typeName`
   - `periodsCount`
 
 - **Listado de períodos:**
