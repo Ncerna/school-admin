@@ -52,6 +52,10 @@ interface ApiCrudPageProps<T extends { id: string }, TPayload = Omit<T, "id">> {
   }) => ReactNode;
   /** Callback for viewing item details (shows Eye button in table) */
   onViewDetails?: (item: T) => void;
+  /** Callback when data changes (receives items for filtering) */
+  onDataChange?: (items: T[]) => void;
+  /** Custom delete handler (for confirmation dialogs) */
+  onCustomDelete?: (item: T) => Promise<void> | void;
 }
 
 /**
@@ -74,6 +78,8 @@ export function ApiCrudPage<T extends { id: string }, TPayload = Omit<T, "id">>(
   filterComponent,
   renderFormDialog,
   onViewDetails,
+  onDataChange,
+  onCustomDelete,
 }: ApiCrudPageProps<T, TPayload>) {
   const resource = useCrudResource<T, TPayload>(api);
   const [formOpen, setFormOpen] = useState(false);
@@ -121,21 +127,31 @@ export function ApiCrudPage<T extends { id: string }, TPayload = Omit<T, "id">>(
     }
   }
 
+  // Call onDataChange when items change
+  useEffect(() => {
+    onDataChange?.(resource.items);
+  }, [resource.items, onDataChange]);
+
+  // Memoize formInitialValues to prevent unnecessary re-renders
+  const formInitialValues = useMemo(() => {
+    return (editingItem ?? { ...emptyItem, id: "" }) as T;
+  }, [editingItem, emptyItem]);
+
+  // Handle delete - use custom handler if provided
   async function handleDelete() {
     if (!deleteTarget) return;
     try {
-      await resource.remove(deleteTarget.id);
+      if (onCustomDelete) {
+        await onCustomDelete(deleteTarget);
+      } else {
+        await resource.remove(deleteTarget.id);
+      }
       setDeleteTarget(null);
     } catch {
       // El mensaje de error queda visible en resource.error; el diálogo
       // permanece abierto para que el usuario pueda reintentar.
     }
   }
-
-  // Memoize formInitialValues to prevent unnecessary re-renders
-  const formInitialValues = useMemo(() => {
-    return (editingItem ?? { ...emptyItem, id: "" }) as T;
-  }, [editingItem, emptyItem]);
 
   return (
     <div>
@@ -168,7 +184,13 @@ export function ApiCrudPage<T extends { id: string }, TPayload = Omit<T, "id">>(
         columns={columns}
         data={resource.items}
         onEdit={openEdit}
-        onDelete={(item) => setDeleteTarget(item)}
+        onDelete={(item) => {
+          if (onCustomDelete) {
+            onCustomDelete(item);
+          } else {
+            setDeleteTarget(item);
+          }
+        }}
         onViewDetails={onViewDetails}
         emptyMessage={resource.search ? "No se encontraron resultados." : "No hay registros todavía."}
         isLoading={resource.isLoading}

@@ -1,4 +1,4 @@
-import { Trash2, X } from "lucide-react";
+import { Trash2, X, AlertTriangle } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -33,8 +33,11 @@ export function ConfirmDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-sm">
         <DialogHeader>
-          <DialogTitle>{title}</DialogTitle>
-          {description && <DialogDescription>{description}</DialogDescription>}
+          <div className="flex items-center gap-3">
+            <AlertTriangle className="h-5 w-5 text-amber-500" />
+            <DialogTitle>{title}</DialogTitle>
+          </div>
+          {description && <DialogDescription className="mt-2">{description}</DialogDescription>}
         </DialogHeader>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isLoading}>

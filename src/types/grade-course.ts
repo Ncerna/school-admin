@@ -4,12 +4,22 @@ import type { Status } from "./index";
 // Grade Course type - represents a course assigned to a grade
 export interface GradeCourse {
   id: string;
-  courseName: string;
+  yearId: number;
+  yearName: string;
+  gradeId: number;
   gradeName: string;
   levelName: string;
   section: string;
   date: string;
+  coursesCount: number;
   status: Status;
+}
+
+// Form state for editing - API returns { yearId, gradeId, courseIds: [...] }
+export interface GradeCourseFormState {
+  yearId: number;
+  gradeId: number;
+  courseIds: number[];
 }
 
 // Payload for assigning courses to a grade

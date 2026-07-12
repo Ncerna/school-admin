@@ -155,6 +155,54 @@ async function requestForm<T>(path: string, options: FormRequestOptions): Promis
   return payload.data;
 }
 
+/**
+ * Request that returns the full response including data even on error.
+ * Useful for endpoints that return special data in error responses.
+ */
+async function requestWithData<T>(path: string, options: RequestOptions = {}): Promise<{
+  success: boolean;
+  message: string;
+  data: T | null;
+  errors: Record<string, string[]> | null;
+}> {
+  const { method = "GET", body, params, requiresAuth = true, isRetry = false, signal } = options;
+
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+
+  if (requiresAuth) {
+    const token = tokenStorage.getAccessToken();
+    if (token) headers.Authorization = `Bearer ${token}`;
+  }
+
+  const response = await fetch(`${API_BASE_URL}${path}${buildQueryString(params)}`, {
+    method,
+    headers,
+    body: body !== undefined ? JSON.stringify(body) : undefined,
+    signal,
+  });
+
+  const text = await response.text();
+  const payload = (text ? JSON.parse(text) : {}) as ApiResponse<T>;
+
+  if (response.status === 401 && requiresAuth && !isRetry) {
+    try {
+      await refreshAccessToken();
+      return requestWithData<T>(path, { ...options, isRetry: true });
+    } catch {
+      tokenStorage.clear();
+      emitSessionExpired();
+      throw new ApiError("Your session has expired. Please sign in again.", 401);
+    }
+  }
+
+  return {
+    success: payload.success,
+    message: payload.message,
+    data: payload.data,
+    errors: payload.errors,
+  };
+}
+
 /** Single, centralized API client used by every service in the app. */
 export const apiClient = {
   get: <T>(path: string, params?: Record<string, unknown>, options?: RequestOptions) =>
@@ -176,4 +224,8 @@ export const apiClient = {
 
   putForm: <T>(path: string, body: FormData, options?: FormRequestOptions) =>
     requestForm<T>(path, { ...options, method: "PUT", body }),
+
+  /** Request that returns full response including data on error */
+  requestWithData: <T>(path: string, options?: RequestOptions) =>
+    requestWithData<T>(path, options),
 };

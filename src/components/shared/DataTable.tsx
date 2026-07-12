@@ -129,7 +129,7 @@ export function DataTable<T extends { id: string }>({
         </TableHeader>
         <TableBody>
           {data.map((item, index) => (
-            <TableRow key={item.id} className="h-10">
+            <TableRow key={index} className="h-10">
               <TableCell className="py-2 font-mono text-sm">{currentPage * itemsPerPage - itemsPerPage + index + 1}</TableCell>
               {columns.map((col) => (
                 <TableCell key={String(col.accessor)} className="py-2">
