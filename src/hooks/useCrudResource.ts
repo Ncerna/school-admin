@@ -16,8 +16,11 @@ const EMPTY_PAGINATION: PaginationMeta = { currentPage: 1, limit: 10, total: 0, 
  * Encapsulates every concern shared by list screens: fetching a page of data,
  * debounced search, sortable columns, and create/update/delete actions each
  * with their own loading flag (used to drive per-button Loading States).
+ * 
+ * TExtra is an optional third generic parameter to capture a top-level `summary`
+ * field from the list response (used by PaymentsReportPage).
  */
-export function useCrudResource<TEntity extends { id: string }, TPayload = Partial<TEntity>>(
+export function useCrudResource<TEntity extends { id: string }, TPayload = Partial<TEntity>, TExtra = undefined>(
   api: CrudResourceApi<TEntity, TPayload>,
   options?: { limit?: number; extraParams?: Record<string, unknown> }
 ) {
@@ -25,6 +28,7 @@ export function useCrudResource<TEntity extends { id: string }, TPayload = Parti
 
   const [items, setItems] = useState<TEntity[]>([]);
   const [pagination, setPagination] = useState<PaginationMeta>(EMPTY_PAGINATION);
+  const [summary, setSummary] = useState<TExtra>();
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebounce(search, 400);
@@ -56,6 +60,10 @@ export function useCrudResource<TEntity extends { id: string }, TPayload = Parti
       if (result && result.pagination) {
         setItems(result.items);
         setPagination(result.pagination);
+        // Capture summary if present (TExtra)
+        if (result && typeof result === 'object' && 'summary' in result) {
+          setSummary((result as any).summary);
+        }
       } else {
         // If no data or malformed response, set empty state
         setItems([]);
@@ -155,5 +163,6 @@ export function useCrudResource<TEntity extends { id: string }, TPayload = Parti
     remove,
     refetch: fetchPage,
     setExtraParams,
+    summary,
   };
 }

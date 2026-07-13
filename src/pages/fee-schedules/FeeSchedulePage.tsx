@@ -212,13 +212,6 @@ export default function FeeSchedulePage() {
 
   const isFormLoading = yearsLoading || gradesLoading || chargeTypesLoading;
 
-  // Load options on mount
-  useEffect(() => {
-    fetchYears();
-    fetchGrades();
-    fetchChargeTypes();
-  }, [fetchYears, fetchGrades, fetchChargeTypes]);
-
   // Custom form dialog handler
   const renderFormDialog = useCallback(
     ({

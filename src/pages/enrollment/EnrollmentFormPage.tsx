@@ -99,7 +99,7 @@ function EnrollmentFormDialog({
   viewState: "form" | "review" | "success";
   setViewState: (state: "form" | "review" | "success") => void;
   error: string | null;
-  onRegisterPayment?: (enrollmentId: string) => void;
+  onRegisterPayment?: (enrollmentId: string, enrollmentInstallments: number) => void;
 }) {
   const [formValues, setFormValues] = useState<EnrollmentPayload>({
     studentId: "",
@@ -400,21 +400,21 @@ function EnrollmentFormDialog({
               </>
             )}
 
-            {viewState === "success" && (
-              <>
-                <Button variant="outline" onClick={() => onOpenChange(false)}>
-                  Cerrar
-                </Button>
-                <Button onClick={() => window.open(enrollmentsService.getPdfUrl(confirmedData?.id || ""), "_blank")}>
-                  Descargar PDF
-                </Button>
-                {onRegisterPayment && (
-                  <Button onClick={() => onRegisterPayment(confirmedData?.id || "")}>
-                    Registrar pago
-                  </Button>
-                )}
-              </>
-            )}
+  {viewState === "success" && (
+    <>
+      <Button variant="outline" onClick={() => onOpenChange(false)}>
+        Cerrar
+      </Button>
+      <Button onClick={() => window.open(enrollmentsService.getPdfUrl(confirmedData?.id || ""), "_blank")}>
+        Descargar PDF
+      </Button>
+      {onRegisterPayment && (
+        <Button onClick={() => onRegisterPayment(confirmedData?.id || "", formValues.enrollmentInstallments || 0)}>
+          Registrar pago
+        </Button>
+      )}
+    </>
+  )}
           </DialogFooter>
         </div>
       </DialogContent>
@@ -473,8 +473,13 @@ export default function EnrollmentFormPage() {
   }
 
   // Handle register payment
-  function handleRegisterPayment(enrollmentId: string) {
-    window.location.href = `/pagos/registrar/${enrollmentId}`;
+  function handleRegisterPayment(enrollmentId: string, enrollmentInstallments: number) {
+    // If there are installments, go to enrollment payment page, otherwise go to generic payment page
+    if (enrollmentInstallments > 0) {
+      window.location.href = `/pagos/matricula/${enrollmentId}`;
+    } else {
+      window.location.href = `/pagos/registrar/${enrollmentId}`;
+    }
   }
 
   return (

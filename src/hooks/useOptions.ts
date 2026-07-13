@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { apiClient } from "@/lib/api-client";
 import type { SelectOption } from "@/types";
 
@@ -6,6 +6,7 @@ import type { SelectOption } from "@/types";
  * Fetches options from a /options endpoint (e.g., /levels/options, /classrooms/options).
  * These endpoints return data directly in the `data` property, not paginated.
  * Reused by any form that needs to populate a dropdown from a catalog.
+ * Call the returned `fetch` function when the form dialog opens (lazy loading).
  */
 export function useOptions<T extends { id: string | number; name: string }>(
   endpoint: string,
@@ -13,6 +14,7 @@ export function useOptions<T extends { id: string | number; name: string }>(
 ) {
   const [options, setOptions] = useState<SelectOption[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const isFirstRender = useRef(true);
 
   const fetch = useCallback(async () => {
     setIsLoading(true);
@@ -31,6 +33,14 @@ export function useOptions<T extends { id: string | number; name: string }>(
       setIsLoading(false);
     }
   }, [endpoint, mapToOption]);
+
+  // Auto-fetch on mount (only once, not in StrictMode)
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      fetch();
+    }
+  }, [fetch]);
 
   return { options, isLoading, fetch };
 }

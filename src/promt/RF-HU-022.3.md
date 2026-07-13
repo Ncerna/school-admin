@@ -61,7 +61,7 @@ EN EL MÓDULO DE ENDPOINTS (src/lib/endpoints.ts):
   objeto ENDPOINTS, agrégalas (no reestructures las claves existentes):
   payments: "/payments",
   enrollmentCharges: (id: number) => `/enrollments/${id}/charges`,
-  paymentMethods: "/payment-methods",
+  paymentMethods: "/payment-methods/options",
 
 EN EL MÓDULO DE SERVICIOS (src/services/):
 - Si no existe src/services/payments.service.ts, créalo. Usa apiClient
