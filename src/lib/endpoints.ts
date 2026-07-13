@@ -27,4 +27,9 @@ export const ENDPOINTS = {
   gradeCourses: "/grade-courses",
   publications: "/publications",
   school: "/school",
+  feeSchedules: "/fee-schedules",
+  chargeTypes: "/charge-types",
+  enrollments: "/enrollments",
+  enrollmentPreview: "/enrollments/preview",
+  enrollmentConfirm: "/enrollments/confirm",
 } as const;

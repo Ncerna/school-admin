@@ -1,99 +1,207 @@
-Flujo de usuario: esta es la pantalla base que va a reutilizar el cajero para cualquier tipo de cobro. Se llega a ella desde "Registrar pago" (botón de la matrícula recién creada, o buscando un estudiante matriculado desde un buscador). Muestra el estado de deuda del estudiante — todos sus cargos con su saldo pendiente — y permite seleccionar uno o varios para cobrar. Como 022.4 y 022.5 son casos particulares de esta misma pantalla (matrícula en cuotas / pensiones), construyo aquí un componente reutilizable que esas dos historias solo van a parametrizar (filtro de tipo de cargo + endpoint a llamar), en vez de duplicar la pantalla tres veces.
+RF-HU-022.3 frontend: Generic payment screen (cashier), supporting split
+payment across multiple methods (e.g. part cash, part Yape) in a single
+submission. Follow every instruction below in order — this project
+already has an established structure, so most steps are "locate and
+reuse", not "create from zero".
 
-RF-HU-022.3 frontend: Cashier screen — charges list + generic payment
-registration. Built as a reusable component so 022.4/022.5 wrap it
-instead of duplicating it.
+EN EL MÓDULO DE TIPOS (src/types/):
+- Si no existe el archivo src/types/payment.ts, créalo. Si ya existe
+  (de un intento anterior), ábrelo y reemplaza su contenido por el
+  siguiente, sin dejar tipos antiguos con forma distinta:
 
-1. Types (src/types/payment.ts):
-   - Charge { id, chargeType, installmentNumber, period, amount,
-     balance, status, dueDate }
-   - RegisterPaymentPayload { paymentMethodCode, cashPointId, amount,
-     reference: string | null, chargeIds: number[] | null }
-   - PaymentAllocation { chargeId, chargeType, period, amountApplied,
-     chargeStatus }
-   - PaymentResult { id, enrollmentId, amount, paidAt, method,
-     reference, unappliedAmount, allocations: PaymentAllocation[] }
+  export interface Charge {
+    id: number;
+    chargeType: string;
+    installmentNumber: number | null;
+    period: string | null;
+    amount: number;
+    balance: number;
+    status: string;
+    dueDate: string;
+  }
 
-2. Endpoints (extend ENDPOINTS):
-   payments: "/payments",
-   enrollmentCharges: (id: number) => `/enrollments/${id}/charges`,
+  export interface PaymentMethodEntry {
+    paymentMethodCode: string;
+    amount: number;
+    reference: string | null;
+  }
 
-3. Service (src/services/payments.service.ts), plain apiClient calls:
-   getCharges: (enrollmentId: number, chargeType?: string) =>
-     apiClient.get<Charge[]>(ENDPOINTS.enrollmentCharges(enrollmentId),
-       chargeType ? { chargeType } : undefined)
-   register: (endpoint: string, payload: RegisterPaymentPayload) =>
-     apiClient.post<PaymentResult>(endpoint, payload)
-   (register takes the endpoint as a parameter on purpose — 022.3 posts
-   to "/payments", 022.4 will post to "/enrollments/{id}/pay-enrollment",
-   022.5 to "/enrollments/{id}/pay-tuition"; same payload shape, same
-   response shape, only the URL changes.)
+  export interface RegisterPaymentPayload {
+    payableType: "enrollment";
+    payableId: number;
+    methods: PaymentMethodEntry[];
+    chargeIds: number[] | null;
+    chargeTypeCode?: string | null;
+  }
 
-4. Component (src/components/payments/ChargesPaymentPanel.tsx) —
-   props: { enrollmentId: number, chargeTypeFilter?: string,
-   submitEndpoint: string, methodLocked?: string }. This is NOT a page,
-   it's the shared panel both this history and 022.4/022.5 render
-   inside their own page shell.
+  export interface PaymentAllocation {
+    chargeId: number;
+    chargeType: string;
+    period: string | null;
+    amountApplied: number;
+    chargeStatus: string;
+  }
 
-   Flow inside the component:
-   a. On mount, call paymentsService.getCharges(enrollmentId,
-      chargeTypeFilter) and render a DataTable: checkbox column,
-      Tipo (mapped label), Cuota/Periodo, Monto, Saldo (balance),
-      Vencimiento, Estado (StatusBadge — Pending/Partial in default
-      colors, Paid rows rendered but their checkbox disabled since
-      balance is 0).
-   b. Selecting checkboxes accumulates selected charge ids in local
-      state and auto-fills the amount Input with the sum of their
-      balance — the amount stays editable afterward (the cashier may
-      receive less than the full balance, that's a valid partial
-      payment; the backend handles it, this screen just proposes a
-      sensible default).
-   c. SelectField for payment method (from /payment-methods, unless
-      methodLocked is passed — skip rendering the field and use that
-      fixed code, not needed yet but keeps the component ready) and
-      cash point (from /cash-points).
-   d. Reference Input, required only when the selected method's code
-      is not CASH (client-side hint; backend is the source of truth).
-   e. Submit button (LoadingButton) calls
-      paymentsService.register(submitEndpoint, {
-        paymentMethodCode, cashPointId, amount, reference,
-        chargeIds: selectedIds.length ? selectedIds : null
-      }).
-      If the cashier typed an amount without selecting any checkbox,
-      chargeIds goes as null — this is the intentional "auto-allocate,
-      I don't want to pick months" path the backend already supports.
-   f. On success, show the returned PaymentResult: list of
-      allocations applied (chargeType/period/amountApplied/newStatus),
-      and if unappliedAmount > 0, an inline warning: "S/{amount} no se
-      pudo aplicar, no hay más cargos pendientes de este tipo." Then
-      re-fetch getCharges to refresh balances/status in the table
-      (don't just patch local state — trust the server's recalculated
-      truth).
-   g. On error, surface backend validation messages inline (e.g.
-      "Todos los cargos deben pertenecer a esta matrícula").
+  export interface PaymentResult {
+    id: number;
+    method: string;
+    amount: number;
+    reference: string | null;
+    paidAt: string;
+    allocations: PaymentAllocation[];
+  }
 
-5. Page (src/pages/payments/RegisterPaymentPage.tsx) — the concrete
-   page for this history (022.4/022.5 will have their own thin pages):
-   - Route param :enrollmentId (or a student search step first if
-     arriving without one — reuse the SearchInput pattern from
-     EnrollmentFormPage to find the enrollment by student name/dni,
-     hitting a simple GET /enrollments?studentSearch=... if available,
-     otherwise route here only from the "Registrar pago" button on
-     022.2's success screen for now).
-   - Header showing student/grade/year (from the enrollment, fetched
-     once).
-   - Renders <ChargesPaymentPanel enrollmentId={id}
-     submitEndpoint={ENDPOINTS.payments} /> with no chargeTypeFilter —
-     this is the "cobrar cualquier cosa pendiente" screen, distinct
-     from the type-locked screens in 022.4/022.5.
+  export interface PaymentBatchResult {
+    payments: PaymentResult[];
+    unappliedAmount: number;
+  }
 
-6. Navigation: add "Registrar pago" under "Pagos" in nav-items.ts
-   (icon: Receipt), pointing to /pagos/registrar (search-first entry
-   point) — separate from the direct-link flow reached via 022.2's
-   success screen.
+EN EL MÓDULO DE ENDPOINTS (src/lib/endpoints.ts):
+- Abre el archivo. Si las siguientes claves NO existen dentro del
+  objeto ENDPOINTS, agrégalas (no reestructures las claves existentes):
+  payments: "/payments",
+  enrollmentCharges: (id: number) => `/enrollments/${id}/charges`,
+  paymentMethods: "/payment-methods",
 
-7. Routes: register in App.tsx, same pattern as prior histories.
+EN EL MÓDULO DE SERVICIOS (src/services/):
+- Si no existe src/services/payments.service.ts, créalo. Usa apiClient
+  directamente (NO createCrudService, porque este recurso no es un
+  CRUD estándar de listar/crear/editar/eliminar):
 
-All code (names, comments) in English; UI copy in Spanish. Do not
-duplicate ChargesPaymentPanel's logic in future histories — 022.4 and
-022.5 must import and reuse it.
+  export const paymentsService = {
+    getCharges: (enrollmentId: number, chargeType?: string) =>
+      apiClient.get<Charge[]>(
+        ENDPOINTS.enrollmentCharges(enrollmentId),
+        chargeType ? { chargeType } : undefined
+      ),
+    register: (endpoint: string, payload: RegisterPaymentPayload) =>
+      apiClient.post<PaymentBatchResult>(endpoint, payload),
+  };
+
+  (register recibe el endpoint como parámetro a propósito: esta misma
+  función la van a reutilizar 022.4 con "/enrollments/{id}/pay-enrollment"
+  y 022.5 con "/enrollments/{id}/pay-tuition" — no dupliques esta
+  función en esas historias, impórtala de aquí.)
+
+- Si no existe src/services/payment-methods.service.ts, créalo con
+  createCrudService (este sí es un catálogo simple de solo lectura
+  desde esta pantalla):
+
+  export const paymentMethodsService = createCrudService<PaymentMethod>(
+    ENDPOINTS.paymentMethods
+  );
+
+EN EL MÓDULO DE COMPONENTES (src/components/payments/):
+- Si no existe la carpeta src/components/payments/, créala.
+- Dentro, crea el archivo ChargesPaymentPanel.tsx. Este componente NO
+  es una página — es un panel reutilizable que va a recibir estas
+  props:
+
+  interface ChargesPaymentPanelProps {
+    payableId: number;
+    chargeTypeFilter?: string;
+    submitEndpoint: string;
+  }
+
+- Dentro del componente, sigue estos pasos EN ORDEN:
+
+  1. Al montar el componente, llama a
+     paymentsService.getCharges(payableId, chargeTypeFilter) y guarda
+     el resultado en estado local. Mientras carga, muestra un spinner
+     (reutiliza el componente de loading que ya existe en el proyecto).
+
+  2. Renderiza un DataTable con las columnas: checkbox (deshabilitado
+     si el cargo ya está "Paid"), Tipo (mapea chargeType: ENROLLMENT ->
+     "Matrícula", TUITION -> "Pensión", SUPPLIES -> "Útiles"), Cuota/
+     Periodo (installmentNumber o period, "-" si ambos son null),
+     Monto, Saldo (balance), Estado (usa el componente StatusBadge que
+     ya existe en el proyecto), Vencimiento.
+
+  3. Selecciona los cargos: al marcar/desmarcar un checkbox, guarda los
+     ids seleccionados en un arreglo de estado (selectedChargeIds).
+     Calcula automáticamente totalSelected = suma de balance de los
+     cargos seleccionados. Este total se usa en el paso 5.
+
+  4. Debajo de la tabla, renderiza la sección "Métodos de pago" así:
+     a. Empieza SIEMPRE con una fila de método visible por defecto
+        (no vacía la lista — el cajero casi siempre usa un solo
+        método).
+     b. Cada fila de método tiene: SelectField de método (opciones
+        desde paymentMethodsService.list()), Input numérico de monto,
+        Input de texto "Referencia" (solo visible/habilitado si el
+        método seleccionado en esa fila no es "CASH").
+     c. Debajo de la última fila, un botón de texto "+ Agregar otro
+        método de pago" que agrega una fila nueva vacía al arreglo de
+        métodos en estado.
+     d. Cada fila agregada (excepto si es la única) debe tener un
+        ícono de eliminar (X) para quitarla del arreglo.
+     e. Debajo de todas las filas, muestra en tiempo real:
+        "Total ingresado: S/{suma de amount de todas las filas}" y,
+        si selectedChargeIds no está vacío, también
+        "Total seleccionado: S/{totalSelected}" — si ambos números no
+        coinciden, muestra el texto en amarillo/advertencia (no
+        bloquea el envío, es informativo, ya que el backend acepta
+        pagos parciales o con excedente).
+
+  5. Botón "Registrar pago" (usa el componente LoadingButton que ya
+     existe en el proyecto):
+     a. Deshabilitado si: no hay al menos un método con amount > 0, o
+        algún método distinto de CASH tiene reference vacío.
+     b. Al hacer clic, llama a:
+        paymentsService.register(submitEndpoint, {
+          payableType: "enrollment",
+          payableId,
+          methods: metodosConAmountMayorACero,
+          chargeIds: selectedChargeIds.length ? selectedChargeIds : null,
+          chargeTypeCode: chargeTypeFilter ?? null,
+        })
+
+  6. Al recibir la respuesta (PaymentBatchResult):
+     a. Muestra una lista de confirmación: por cada payment en
+        payments[], renderiza "S/{amount} vía {method}" seguido de sus
+        allocations (chargeType/period/amountApplied/chargeStatus).
+     b. Si unappliedAmount > 0, muestra un mensaje de advertencia
+        visible: "S/{unappliedAmount} no se pudo aplicar a ningún
+        cargo pendiente."
+     c. Vuelve a llamar a paymentsService.getCharges(...) para
+        refrescar la tabla del paso 2 con los saldos/estados reales
+        (no edites el estado local manualmente — confía en lo que
+        regresa el servidor).
+     d. Limpia selectedChargeIds y vuelve a dejar una sola fila de
+        método vacía, lista para un nuevo pago.
+
+  7. Si la llamada del paso 5 falla, muestra el mensaje de error del
+     backend en la parte superior del panel (reutiliza el patrón de
+     manejo de errores que ya usan los demás formularios del proyecto,
+     ej. StudentFormPage), sin perder lo que el cajero ya había
+     seleccionado o escrito.
+
+EN EL MÓDULO DE PÁGINAS (src/pages/payments/):
+- Si no existe la carpeta src/pages/payments/, créala.
+- Crea el archivo RegisterPaymentPage.tsx:
+  1. Lee :enrollmentId de la URL (route param).
+  2. Obtén los datos del encabezado (estudiante/grado/año) — si ya
+     existe un endpoint GET /enrollments/{id} o similar reutilízalo; si
+     no, omite el encabezado detallado y muestra solo el ID por ahora.
+  3. Renderiza:
+     <ChargesPaymentPanel payableId={enrollmentId}
+       submitEndpoint={ENDPOINTS.payments} />
+     (sin chargeTypeFilter — esta pantalla cobra cualquier tipo de
+     cargo pendiente, a diferencia de 022.4/022.5 que sí filtran).
+
+EN EL MÓDULO DE NAVEGACIÓN (src/components/layout/nav-items.ts):
+- Si no existe una sección "Pagos", créala con un ícono Receipt de
+  lucide-react.
+- Dentro, si no existe la entrada "Registrar pago", agrégala apuntando
+  a /pagos/registrar.
+
+EN EL MÓDULO DE RUTAS (src/App.tsx):
+- Si no existe la ruta /pagos/registrar/:enrollmentId, regístrala
+  dentro del árbol ProtectedRoute + DashboardLayout, siguiendo el mismo
+  patrón que las rutas de /estudiantes o /matricula.
+
+TODO el código (nombres de variables, funciones, comentarios) en
+inglés; los textos visibles al usuario (labels, botones, mensajes) en
+español. No dupliques ChargesPaymentPanel — 022.4 y 022.5 deben
+importarlo desde src/components/payments/ChargesPaymentPanel.tsx, no
+copiarlo.

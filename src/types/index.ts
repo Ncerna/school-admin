@@ -188,6 +188,12 @@ export type { EvaluationPeriod, EvaluationPeriodPayload, EvaluationPeriodFormSta
 // Re-export Grade Course types
 export type { GradeCourse, GradeCoursePayload, AcademicYearOption as GradeCourseAcademicYearOption, GradeOption, CourseOption } from "./grade-course";
 
+// Re-export Fee Schedule types
+export type { FeeSchedule, FeeSchedulePayload } from "./fee-schedule";
+
+// Re-export Enrollment types
+export type { EnrollmentListItem, GeneratedCharge, EnrollmentPreview, EnrollmentConfirmed, EnrollmentPayload } from "./enrollment";
+
 // Type aliases for backward compatibility (Spanish names)
 export type { Level as Nivel, Grade as Grado, Classroom as Aula, Course as Curso, Shift as Turno, AcademicYear as AnioAcademico, EvaluationType as TipoEvaluacion, Role as Rol, MenuAccess as MenuAcceso, Teacher as Docente, Student as Estudiante, Guardian as Apoderado, School as Colegio, Publication as Publicacion };
 export type { EvaluationPeriod as PeriodoEvaluacion, EvaluationPeriodPayload as PeriodoEvaluacionPayload } from "./evaluation-period";

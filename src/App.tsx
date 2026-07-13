@@ -21,6 +21,8 @@ const ClassroomsPage = lazy(() => import("@/pages/classrooms/ClassroomPage"));
 const GradesPage = lazy(() => import("@/pages/grades/GradePage"));
 const CoursesPage = lazy(() => import("@/pages/courses/CoursePage"));
 const GradeCoursePage = lazy(() => import("@/pages/grade-courses/GradeCoursePage"));
+const FeeSchedulePage = lazy(() => import("@/pages/fee-schedules/FeeSchedulePage"));
+const EnrollmentFormPage = lazy(() => import("@/pages/enrollment/EnrollmentFormPage"));
 const ShiftsPage = lazy(() => import("@/pages/shifts/ShiftPage"));
 const AcademicYearPage = lazy(() => import("@/pages/academicYear/AcademicYearPage"));
 const EvaluationTypePage = lazy(() => import("@/pages/evaluationType/EvaluationTypePage"));
@@ -182,6 +184,25 @@ export default function App() {
               <Route path="/publicaciones/:id/editar" element={
                 <Suspense fallback={<PageLoader />}>
                   <PublicationFormPage />
+                </Suspense>
+              } />
+
+              {/* Fee Schedules (RF-HU-022.1) */}
+              <Route path="/fee-schedules" element={
+                <Suspense fallback={<PageLoader />}>
+                  <FeeSchedulePage />
+                </Suspense>
+              } />
+
+              {/* Enrollment (RF-HU-022.2) */}
+              <Route path="/matricula" element={
+                <Suspense fallback={<PageLoader />}>
+                  <EnrollmentFormPage />
+                </Suspense>
+              } />
+              <Route path="/matricula/nuevo" element={
+                <Suspense fallback={<PageLoader />}>
+                  <EnrollmentFormPage />
                 </Suspense>
               } />
             </Route>

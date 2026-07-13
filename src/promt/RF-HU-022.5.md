@@ -1,37 +1,71 @@
-RF-HU-022.5 frontend: Pay tuition charges — thin wrapper around
-ChargesPaymentPanel, scoped to TUITION.
+RF-HU-022.5 frontend: Pay TUITION charges — thin screen that reuses
+ChargesPaymentPanel from RF-HU-022.3, plus a "seleccionar todo lo
+pendiente" convenience feature (small addition to the shared panel,
+benefits 022.3/022.4 too).
 
-1. No new types beyond payment.ts.
+EN EL MÓDULO DE TIPOS (src/types/payment.ts):
+- No se crean tipos nuevos. Debe existir ya desde 022.3.
 
-2. Endpoint (extend ENDPOINTS):
-   payTuition: (id: number) => `/enrollments/${id}/pay-tuition`,
+EN EL MÓDULO DE ENDPOINTS (src/lib/endpoints.ts):
+- Abre el archivo. Si la siguiente clave NO existe dentro del objeto
+  ENDPOINTS, agrégala:
+  payTuition: (id: number) => `/enrollments/${id}/pay-tuition`,
 
-3. No new service functions — reuses register(endpoint, payload).
+EN EL MÓDULO DE SERVICIOS (src/services/payments.service.ts):
+- No se crean funciones nuevas. Reutiliza register(endpoint, payload)
+  de 022.3, pasando ENDPOINTS.payTuition(id).
 
-4. Component change (small addition to ChargesPaymentPanel from 022.3,
-   not a new component): add an optional "Seleccionar todo lo
-   pendiente" checkbox above the table header, visible always but most
-   useful here — when toggled, it checks every row with status Pending
-   or Partial in one click (covers "el padre quiere adelantar todo el
-   año"). This is a generic addition to the shared panel, so 022.3's
-   screen benefits too, not just this one.
+EN EL MÓDULO DE COMPONENTES (src/components/payments/ChargesPaymentPanel.tsx):
+- Este es el ÚNICO archivo de componente que se modifica en esta
+  historia (no se crea uno nuevo). Localiza la sección de la tabla de
+  cargos (paso 2-3 del prompt de 022.3) y agrega, justo encima del
+  encabezado de la tabla, un checkbox nuevo:
+  "Seleccionar todo lo pendiente"
+  - Al marcarlo: selectedChargeIds pasa a contener los ids de TODOS
+    los cargos visibles con status "Pending" o "Partial" (no toca los
+    "Paid", que ya tienen su checkbox deshabilitado).
+  - Al desmarcarlo: selectedChargeIds vuelve a un arreglo vacío.
+  - Si el usuario desmarca manualmente un checkbox individual mientras
+    "Seleccionar todo" está marcado, el checkbox general debe pasar a
+    estado indeterminado (no marcado, no vacío) — usa la prop
+    indeterminate del checkbox si el componente ui/checkbox del
+    proyecto la soporta; si no la soporta, simplemente desmarca el
+    checkbox general en ese caso.
+  Este cambio es genérico y queda disponible también para 022.3 y
+  022.4 — no se condiciona a chargeTypeFilter, aunque es en pensiones
+  donde más se va a usar (adelantar varios meses de una vez).
 
-5. Page (src/pages/payments/PayTuitionPage.tsx):
-   - Route param :enrollmentId.
-   - Same header pattern as 022.4's page.
-   - Renders <ChargesPaymentPanel enrollmentId={id}
-     chargeTypeFilter="TUITION"
-     submitEndpoint={ENDPOINTS.payTuition(id)} />.
-   - After a successful payment, if the response's unappliedAmount > 0,
-     keep the warning message from the panel visible (don't auto-clear
-     it) since overpayment on tuition is a case the accountant may want
-     to reconcile manually.
+EN EL MÓDULO DE PÁGINAS (src/pages/payments/):
+- Crea el archivo PayTuitionPage.tsx:
+  1. Lee :enrollmentId de la URL (route param).
+  2. Obtén los datos del encabezado igual que en PayEnrollmentPage.tsx
+     (022.4) — mismo patrón, no dupliques la llamada, reutilízala si
+     ya está extraída en un hook común; si no lo está, cópiala tal cual
+     está en esa página (no la reinventes distinto).
+  3. Muestra un título fijo: "Pagar pensiones".
+  4. Renderiza:
+     <ChargesPaymentPanel payableId={enrollmentId}
+       chargeTypeFilter="TUITION"
+       submitEndpoint={ENDPOINTS.payTuition(enrollmentId)} />
+  5. Si el resultado de un pago (PaymentBatchResult) trae
+     unappliedAmount > 0, NO ocultes el mensaje de advertencia del
+     panel automáticamente — déjalo visible hasta que el usuario haga
+     otra acción, ya que un excedente en pensiones puede necesitar
+     revisión manual del contador después.
 
-6. Navigation: add "Pagar pensiones" under "Pagos" in nav-items.ts
-   (icon: CalendarCheck), pointing to /pagos/pensiones, with the same
-   search-first redirect pattern as 022.4 (/pagos/pensiones ->
-   /pagos/pensiones/:enrollmentId).
+EN EL MÓDULO DE BÚSQUEDA PREVIA (src/pages/payments/PaymentSearchPage.tsx):
+- Ya existe desde 022.4 y recibe targetRoute como prop/parámetro — NO
+  la dupliques. Reutilízala pasando targetRoute="/pagos/pensiones".
 
-7. Routes: register both in App.tsx.
+EN EL MÓDULO DE NAVEGACIÓN (src/components/layout/nav-items.ts):
+- Dentro de la sección "Pagos", si no existe la entrada "Pagar
+  pensiones", agrégala apuntando a /pagos/pensiones.
 
-All code in English; UI copy in Spanish.
+EN EL MÓDULO DE RUTAS (src/App.tsx):
+- Si no existen, registra:
+  /pagos/pensiones -> PaymentSearchPage (con targetRoute="/pagos/pensiones")
+  /pagos/pensiones/:enrollmentId -> PayTuitionPage
+
+TODO el código (nombres, comentarios) en inglés; textos visibles en
+español. No dupliques ChargesPaymentPanel ni PaymentSearchPage —
+ambos se importan desde su ubicación original.

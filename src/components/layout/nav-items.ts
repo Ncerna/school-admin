@@ -18,6 +18,7 @@ import {
   Users,
   Settings,
   FileText,
+  Wallet,
   type LucideIcon,
 } from "lucide-react";
 
@@ -64,6 +65,19 @@ export const mainNavItems: NavItem[] = [
     title: "Docentes",
     url: "/docentes",
     icon: UserCog,
+  },
+  {
+    title: "Matrícula",
+    url: "/matricula",
+    icon: GraduationCap,
+  },
+  {
+    title: "Pagos",
+    url: "/pagos",
+    icon: Wallet,
+    items: [
+      { title: "Tarifas", url: "/fee-schedules", icon: FileText },
+    ],
   },
   {
     title: "Administración",
