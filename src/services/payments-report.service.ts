@@ -1,7 +1,6 @@
 import { apiClient } from "@/lib/api-client";
 import { ENDPOINTS } from "@/lib/endpoints";
-import type { ListParams } from "@/types/api";
-import type { PaymentReportResponse, PaymentReportFilters } from "@/types/payment-report";
+import type { PaymentReportResponse, PaymentReportFilters, ListParams } from "@/types";
 
 export const paymentsReportService = {
   get: (params: ListParams & PaymentReportFilters) =>

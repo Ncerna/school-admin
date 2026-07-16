@@ -1,18 +1,19 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { Loader2, X } from "lucide-react";
 import { paymentsService } from "@/services/payments.service";
-import { paymentMethodsService } from "@/services/payment-methods.service";
-import { Badge } from "@/components/ui/badge";
 import { LoadingButton } from "@/components/common/LoadingButton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ChargeStatusBadge } from "@/components/shared/ChargeStatusBadge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ApiError } from "@/types/api";
+import { useOptions } from "@/hooks/useOptions";
 import { ENDPOINTS } from "@/lib/endpoints";
-import { apiClient } from "@/lib/api-client";
-import type { Charge, PaymentMethod, PaymentMethodEntry, PaymentBatchResult } from "@/types";
+
+import type { Charge, PaymentMethod, PaymentBatchResult } from "@/types";
+import type { PaymentMethodEntry, PaymentMethodEntryPayload } from "@/types/payment";
 
 interface ChargesPaymentPanelProps {
   payableId: number;
@@ -27,11 +28,123 @@ const chargeTypeLabels: Record<string, string> = {
   SUPPLIES: "Útiles",
 };
 
-// Charge status badge variant mapping
-function getChargeStatusVariant(status: string): "success" | "secondary" | "destructive" {
-  if (status === "Paid") return "success";
-  if (status === "Pending" || status === "Partial") return "secondary";
-  return "destructive";
+// Payment method entry for form state
+interface PaymentMethodFormEntry {
+  id: string;
+  paymentMethodCode: string;
+  amount: number;
+  reference: string | null;
+}
+
+// Counter for generating unique IDs
+let entryIdCounter = 0;
+function generateEntryId(): string {
+  return `entry-${++entryIdCounter}`;
+}
+
+// Payment methods form section component
+function PaymentMethodsSection({
+  entries,
+  paymentMethods,
+  onMethodChange,
+  onAddMethod,
+  onRemoveMethod,
+}: {
+  entries: PaymentMethodFormEntry[];
+  paymentMethods: { value: string; label: string }[];
+  onMethodChange: (entryId: string, field: keyof PaymentMethodFormEntry, value: string | number | null) => void;
+  onAddMethod: () => void;
+  onRemoveMethod: (entryId: string) => void;
+}) {
+  const totalEntered = useMemo(
+    () => entries.reduce((sum, e) => sum + (e.amount || 0), 0),
+    [entries]
+  );
+
+  return (
+    <div className="space-y-3">
+      <h3 className="text-sm font-medium">Métodos de pago</h3>
+      
+      {entries.map((entry) => (
+        <div key={entry.id} className="flex items-end gap-3 p-3 border rounded-md">
+          <div className="flex-1 grid gap-1.5">
+            <Label htmlFor={`method-${entry.id}`}>Método *</Label>
+            <Select
+              value={entry.paymentMethodCode}
+              onValueChange={(v: string) => onMethodChange(entry.id, "paymentMethodCode", v)}
+            >
+              <SelectTrigger id={`method-${entry.id}`}>
+                <SelectValue placeholder="Seleccionar método" />
+              </SelectTrigger>
+              <SelectContent>
+                {paymentMethods.map((method) => (
+                  <SelectItem key={method.value} value={method.value}>
+                    {method.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="flex-1 grid gap-1.5">
+            <Label htmlFor={`amount-${entry.id}`}>Monto *</Label>
+            <Input
+              id={`amount-${entry.id}`}
+              type="number"
+              min="0"
+              step="0.01"
+              value={entry.amount || ""}
+              onChange={(e) => onMethodChange(entry.id, "amount", Number(e.target.value))}
+              placeholder="0.00"
+            />
+          </div>
+
+          <div className="flex-1 grid gap-1.5">
+            <Label htmlFor={`reference-${entry.id}`}>
+              Referencia {entry.paymentMethodCode !== "CASH" && "*"}
+            </Label>
+            <Input
+              id={`reference-${entry.id}`}
+              type="text"
+              value={entry.reference || ""}
+              onChange={(e) => onMethodChange(entry.id, "reference", e.target.value)}
+              placeholder="Número de referencia"
+              disabled={entry.paymentMethodCode === "CASH"}
+            />
+          </div>
+
+          {entries.length > 1 && (
+            <button
+              type="button"
+              onClick={() => onRemoveMethod(entry.id)}
+              className="p-2 text-destructive hover:bg-destructive/10 rounded"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
+        </div>
+      ))}
+
+      <button
+        type="button"
+        onClick={onAddMethod}
+        className="text-sm text-primary hover:underline"
+      >
+        + Agregar otro método de pago
+      </button>
+
+      <div className="flex gap-4 text-sm">
+        <span>Total ingresado: S/ {totalEntered.toFixed(2)}</span>
+      </div>
+    </div>
+    
+  );
+}
+
+// Get payment method name by code
+function getPaymentMethodName(code: string, paymentMethods: { value: string; label: string }[]): string {
+  const method = paymentMethods.find((m) => m.value === code);
+  return method?.label || code;
 }
 
 export function ChargesPaymentPanel({ payableId, chargeTypeFilter, submitEndpoint }: ChargesPaymentPanelProps) {
@@ -40,113 +153,130 @@ export function ChargesPaymentPanel({ payableId, chargeTypeFilter, submitEndpoin
   const [error, setError] = useState<string | null>(null);
   
   const [selectedChargeIds, setSelectedChargeIds] = useState<number[]>([]);
-  const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
-  const [paymentMethodEntries, setPaymentMethodEntries] = useState<PaymentMethodEntry[]>([
-    { paymentMethodCode: "", amount: 0, reference: null },
+  const [paymentMethodEntries, setPaymentMethodEntries] = useState<PaymentMethodFormEntry[]>([
+    { id: generateEntryId(), paymentMethodCode: "", amount: 0, reference: null },
   ]);
   
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [paymentResult, setPaymentResult] = useState<PaymentBatchResult | null>(null);
 
+  // Load payment methods using useOptions (auto-fetch on mount for visible dropdowns)
+  const { options: paymentMethods, isLoading: methodsLoading } = useOptions<PaymentMethod>(
+    ENDPOINTS.paymentMethods,
+    (m) => ({ label: m.name, value: m.code }),
+    true // Auto-fetch on mount for payment method dropdowns
+  );
+
   // Load charges on mount
   useEffect(() => {
     loadCharges();
-    loadPaymentMethods();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [payableId, chargeTypeFilter]);
 
-  async function loadCharges() {
+  const loadCharges = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     try {
       const data = await paymentsService.getCharges(payableId, chargeTypeFilter);
+      console.log(chargeTypeFilter)
       setCharges(data);
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "No se pudieron cargar los cargos.");
     } finally {
       setIsLoading(false);
     }
-  }
-
-  async function loadPaymentMethods() {
-    try {
-      // Use /payment-methods/options endpoint which returns array directly
-      const methods = await apiClient.get<PaymentMethod[]>(ENDPOINTS.paymentMethodsOptions);
-      setPaymentMethods(methods);
-    } catch (err) {
-      console.error("Error loading payment methods:", err);
-    }
-  }
+  }, [payableId, chargeTypeFilter]);
 
   // Get pending charges (not Paid)
-  const pendingCharges = charges.filter((c) => c.status !== "Paid");
+  const pendingCharges = useMemo( () => charges.filter((c) => c.status !== "Paid"), [charges]);
 
   // Calculate total selected (sum of balance for selected charges)
-  const totalSelected = charges
-    .filter((c) => selectedChargeIds.includes(c.id))
-    .reduce((sum, c) => sum + c.balance, 0);
+  const totalSelected = useMemo(
+    () => charges
+      .filter((c) => selectedChargeIds.includes(c.id))
+      .reduce((sum, c) => sum + (c.balance ?? c.amount), 0),
+    [charges, selectedChargeIds]
+  );
 
   // Calculate total entered (sum of amounts in payment method entries)
-  const totalEntered = paymentMethodEntries.reduce((sum, e) => sum + (e.amount || 0), 0);
+  const totalEntered = useMemo(
+    () => paymentMethodEntries.reduce((sum, e) => sum + (e.amount || 0), 0),
+    [paymentMethodEntries]
+  );
 
   // Handle charge selection
-  function handleChargeSelect(chargeId: number, checked: boolean) {
+  const handleChargeSelect = useCallback((chargeId: number, checked: boolean) => {
     setSelectedChargeIds((prev) =>
       checked ? [...prev, chargeId] : prev.filter((id) => id !== chargeId)
     );
-  }
+  }, []);
 
   // Handle "select all pending" checkbox
-  function handleSelectAllPending(checked: boolean) {
+  const handleSelectAllPending = useCallback((checked: boolean) => {
     if (checked) {
-      // Select all pending charges
       const pendingIds = pendingCharges.map((c) => c.id);
       setSelectedChargeIds(pendingIds);
     } else {
-      // Deselect all
       setSelectedChargeIds([]);
     }
-  }
+  }, [pendingCharges]);
 
   // Handle payment method change
-  function handleMethodChange(index: number, field: keyof PaymentMethodEntry, value: string | number | null) {
+  const handleMethodChange = useCallback((entryId: string, field: keyof PaymentMethodFormEntry, value: string | number | null) => {
     setPaymentMethodEntries((prev) =>
-      prev.map((entry, i) =>
-        i === index ? { ...entry, [field]: value } : entry
+      prev.map((entry) =>
+        entry.id === entryId ? { ...entry, [field]: value } : entry
       )
     );
-  }
+  }, []);
 
   // Add new payment method row
-  function addPaymentMethod() {
+  const addPaymentMethod = useCallback(() => {
     setPaymentMethodEntries((prev) => [
       ...prev,
-      { paymentMethodCode: "", amount: 0, reference: null },
+      { id: generateEntryId(), paymentMethodCode: "", amount: 0, reference: null },
     ]);
-  }
+  }, []);
 
   // Remove payment method row
-  function removePaymentMethod(index: number) {
+  const removePaymentMethod = useCallback((entryId: string) => {
     if (paymentMethodEntries.length === 1) return;
-    setPaymentMethodEntries((prev) => prev.filter((_, i) => i !== index));
-  }
+    setPaymentMethodEntries((prev) => prev.filter((entry) => entry.id !== entryId));
+  }, [paymentMethodEntries.length]);
 
   // Validation: at least one method with amount > 0, and non-CASH methods need reference
-  const methodsWithAmount = paymentMethodEntries.filter((e) => e.amount > 0);
-  const hasValidReference = methodsWithAmount.every(
-    (e) => e.paymentMethodCode === "CASH" || (e.reference && e.reference.trim() !== "")
+  const methodsWithAmount = useMemo(
+    () => paymentMethodEntries.filter((e) => e.amount > 0),
+    [paymentMethodEntries]
   );
-  const canSubmit = methodsWithAmount.length > 0 && hasValidReference;
+  
+  const hasValidReference = useMemo(
+    () => methodsWithAmount.every(
+      (e) => e.paymentMethodCode === "CASH" || (e.reference && e.reference.trim() !== "")
+    ),
+    [methodsWithAmount]
+  );
+  
+  const canSubmit = useMemo(
+    () => methodsWithAmount.length > 0 && hasValidReference,
+    [methodsWithAmount.length, hasValidReference]
+  );
 
   // Handle payment submission
-  async function handleSubmit() {
+  const handleSubmit = useCallback(async () => {
     setIsSubmitting(true);
     setError(null);
     try {
+      // Map frontend fields to API format (snake_case)
+      const methodsForApi: PaymentMethodEntryPayload[] = methodsWithAmount.map((entry) => ({
+        payment_method_code: entry.paymentMethodCode,
+        amount: entry.amount,
+        reference: entry.reference,
+      }));
       const result = await paymentsService.register(submitEndpoint, {
         payableType: "enrollment",
         payableId,
-        methods: methodsWithAmount,
+        methods: methodsForApi,
         chargeIds: selectedChargeIds.length ? selectedChargeIds : null,
         chargeTypeCode: chargeTypeFilter ?? null,
       });
@@ -155,19 +285,13 @@ export function ChargesPaymentPanel({ payableId, chargeTypeFilter, submitEndpoin
       await loadCharges();
       // Reset form
       setSelectedChargeIds([]);
-      setPaymentMethodEntries([{ paymentMethodCode: "", amount: 0, reference: null }]);
+      setPaymentMethodEntries([{ id: generateEntryId(), paymentMethodCode: "", amount: 0, reference: null }]);
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Error al registrar el pago.");
     } finally {
       setIsSubmitting(false);
     }
-  }
-
-  // Get payment method name by code
-  function getPaymentMethodName(code: string): string {
-    const method = paymentMethods.find((m) => m.code === code);
-    return method?.name || code;
-  }
+  }, [methodsWithAmount, submitEndpoint, payableId, selectedChargeIds, chargeTypeFilter, loadCharges]);
 
   if (isLoading) {
     return (
@@ -231,9 +355,7 @@ export function ChargesPaymentPanel({ payableId, chargeTypeFilter, submitEndpoin
                   <TableCell>S/ {charge.amount.toFixed(2)}</TableCell>
                   <TableCell>S/ {charge.balance.toFixed(2)}</TableCell>
                   <TableCell>
-                    <Badge variant={getChargeStatusVariant(charge.status)}>
-                      {charge.status}
-                    </Badge>
+                    <ChargeStatusBadge status={charge.status} />
                   </TableCell>
                   <TableCell>
                     {new Date(charge.dueDate).toLocaleDateString()}
@@ -246,84 +368,22 @@ export function ChargesPaymentPanel({ payableId, chargeTypeFilter, submitEndpoin
       </div>
 
       {/* Payment Methods Section */}
-      <div className="space-y-3">
-        <h3 className="text-sm font-medium">Métodos de pago</h3>
-        
-        {paymentMethodEntries.map((entry, index) => (
-          <div key={index} className="flex items-end gap-3 p-3 border rounded-md">
-            <div className="flex-1 grid gap-1.5">
-              <Label htmlFor={`method-${index}`}>Método *</Label>
-              <Select
-                value={entry.paymentMethodCode}
-                onValueChange={(v) => handleMethodChange(index, "paymentMethodCode", v)}
-              >
-                <SelectTrigger id={`method-${index}`}>
-                  <SelectValue placeholder="Seleccionar método" />
-                </SelectTrigger>
-                <SelectContent>
-                  {paymentMethods.map((method) => (
-                    <SelectItem key={method.id} value={method.code}>
-                      {method.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+      <PaymentMethodsSection
+        entries={paymentMethodEntries}
+        paymentMethods={paymentMethods}
+        onMethodChange={handleMethodChange}
+        onAddMethod={addPaymentMethod}
+        onRemoveMethod={removePaymentMethod}
+      />
 
-            <div className="flex-1 grid gap-1.5">
-              <Label htmlFor={`amount-${index}`}>Monto *</Label>
-              <Input
-                id={`amount-${index}`}
-                type="number"
-                min="0"
-                step="0.01"
-                value={entry.amount || ""}
-                onChange={(e) => handleMethodChange(index, "amount", Number(e.target.value))}
-                placeholder="0.00"
-              />
-            </div>
-
-            <div className="flex-1 grid gap-1.5">
-              <Label htmlFor={`reference-${index}`}>Referencia {entry.paymentMethodCode !== "CASH" && "*"}</Label>
-              <Input
-                id={`reference-${index}`}
-                type="text"
-                value={entry.reference || ""}
-                onChange={(e) => handleMethodChange(index, "reference", e.target.value)}
-                placeholder="Número de referencia"
-                disabled={entry.paymentMethodCode === "CASH"}
-              />
-            </div>
-
-            {paymentMethodEntries.length > 1 && (
-              <button
-                type="button"
-                onClick={() => removePaymentMethod(index)}
-                className="p-2 text-destructive hover:bg-destructive/10 rounded"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            )}
-          </div>
-        ))}
-
-        <button
-          type="button"
-          onClick={addPaymentMethod}
-          className="text-sm text-primary hover:underline"
-        >
-          + Agregar otro método de pago
-        </button>
-
-        {/* Totals */}
-        <div className="flex gap-4 text-sm">
-          <span>Total ingresado: S/ {totalEntered.toFixed(2)}</span>
-          {selectedChargeIds.length > 0 && (
-            <span className={totalEntered !== totalSelected ? "text-yellow-600" : ""}>
-              Total seleccionado: S/ {totalSelected.toFixed(2)}
-            </span>
-          )}
-        </div>
+      {/* Totals */}
+      <div className="flex gap-4 text-sm">
+        <span>Total ingresado: S/ {totalEntered.toFixed(2)}</span>
+        {selectedChargeIds.length > 0 && (
+          <span className={totalEntered !== totalSelected ? "text-yellow-600" : ""}>
+            Total seleccionado: S/ {totalSelected.toFixed(2)}
+          </span>
+        )}
       </div>
 
       {/* Submit Button */}
@@ -342,7 +402,7 @@ export function ChargesPaymentPanel({ payableId, chargeTypeFilter, submitEndpoin
           
           {paymentResult.payments.map((payment) => (
             <div key={payment.id} className="p-3 border rounded-md">
-              <p className="font-medium">S/ {payment.amount.toFixed(2)} vía {getPaymentMethodName(payment.method)}</p>
+              <p className="font-medium">S/ {payment.amount.toFixed(2)} vía {getPaymentMethodName(payment.method, paymentMethods)}</p>
               {payment.reference && (
                 <p className="text-sm text-muted-foreground">Referencia: {payment.reference}</p>
               )}

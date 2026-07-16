@@ -228,19 +228,31 @@ function GradeCourseFormDialog({
 }
 
 export default function GradeCoursePage() {
-  // Load options for the form (academic years, grades, courses)
-  const { options: academicYearOptions, isLoading: yearsLoading, fetch: fetchYears } = useOptions<AcademicYearOption>(ENDPOINTS.AcademicYears, (n) => ({
-    label: n.name,
-    value: String(n.id),
-  }));
-  const { options: gradeOptions, isLoading: gradesLoading, fetch: fetchGrades } = useOptions<GradeOption>(ENDPOINTS.grades, (a) => ({
-    label: a.name,
-    value: String(a.id),
-  }));
-  const { options: courseOptions, isLoading: coursesLoading, fetch: fetchCourses } = useOptions<CourseOption>(ENDPOINTS.courses, (c) => ({
-    label: c.name,
-    value: String(c.id),
-  }));
+  // Load options for filters (auto-fetch on mount)
+  const { options: filterYearOptions, isLoading: filterYearsLoading } = useOptions<AcademicYearOption>(
+    ENDPOINTS.AcademicYears,
+    (n) => ({ label: n.name, value: String(n.id) }),
+    true // Auto-fetch for filter dropdowns
+  );
+  const { options: filterGradeOptions, isLoading: filterGradesLoading } = useOptions<GradeOption>(
+    ENDPOINTS.grades,
+    (a) => ({ label: a.name, value: String(a.id) }),
+    true // Auto-fetch for filter dropdowns
+  );
+
+  // Load options for the form (lazy loading)
+  const { options: formYearOptions, isLoading: formYearsLoading, fetch: fetchYears } = useOptions<AcademicYearOption>(
+    ENDPOINTS.AcademicYears,
+    (n) => ({ label: n.name, value: String(n.id) })
+  );
+  const { options: formGradeOptions, isLoading: formGradesLoading, fetch: fetchGrades } = useOptions<GradeOption>(
+    ENDPOINTS.grades,
+    (a) => ({ label: a.name, value: String(a.id) })
+  );
+  const { options: courseOptions, isLoading: coursesLoading, fetch: fetchCourses } = useOptions<CourseOption>(
+    ENDPOINTS.courses,
+    (c) => ({ label: c.name, value: String(c.id) })
+  );
 
   // Callback to load options when the form dialog opens
   const handleFormOpen = useCallback(() => {
@@ -250,7 +262,7 @@ export default function GradeCoursePage() {
   }, [fetchYears, fetchGrades, fetchCourses]);
 
   // Combined loading state for the form
-  const isFormLoading = yearsLoading || gradesLoading || coursesLoading;
+  const isFormLoading = formYearsLoading || formGradesLoading || coursesLoading;
 
   // State for filters
   const [selectedYearId, setSelectedYearId] = useState<string>("");
@@ -280,7 +292,7 @@ export default function GradeCoursePage() {
     { header: "Grado", accessor: "gradeName", sortable: true },
     { header: "Nivel", accessor: "levelName" },
     { header: "Sección", accessor: "section" },
-      { header: "Cantidad de Cursos", accessor: "coursesCount" },
+    { header: "Cantidad de Cursos", accessor: "coursesCount" },
     { header: "Fecha", accessor: "date" },
     { header: "Estado", accessor: "status", render: (item) => <StatusBadge estado={item.status} /> },
   ];
@@ -318,7 +330,7 @@ export default function GradeCoursePage() {
       };
 
       // Filter out already assigned grades (except the one being edited)
-      const availableGradeOptions = gradeOptions.filter(option => 
+      const availableGradeOptions = formGradeOptions.filter(option => 
         !assignedGradeIdsRef.current.has(option.value) || (editingItem && String(editingItem.gradeId) === option.value)
       );
 
@@ -329,7 +341,7 @@ export default function GradeCoursePage() {
           editingItem={editingItem}
           isSaving={isSaving}
           onSave={handleSave}
-          academicYearOptions={academicYearOptions}
+          academicYearOptions={formYearOptions}
           gradeOptions={availableGradeOptions}
           courseOptions={courseOptions}
           isFormLoading={isFormLoading}
@@ -340,7 +352,7 @@ export default function GradeCoursePage() {
         />
       );
     },
-    [academicYearOptions, gradeOptions, courseOptions, isFormLoading]
+    [formYearOptions, formGradeOptions, courseOptions, isFormLoading]
   );
 
   // State for delete confirmation message
@@ -408,7 +420,7 @@ export default function GradeCoursePage() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="">Todos los años</SelectItem>
-                  {academicYearOptions.map((option) => (
+                  {filterYearOptions.map((option) => (
                     <SelectItem key={option.value} value={option.value}>
                       {option.label}
                     </SelectItem>
@@ -425,7 +437,7 @@ export default function GradeCoursePage() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="">Todos los grados</SelectItem>
-                  {gradeOptions.map((option) => (
+                  {filterGradeOptions.map((option) => (
                     <SelectItem key={option.value} value={option.value}>
                       {option.label}
                     </SelectItem>

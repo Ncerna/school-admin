@@ -50,12 +50,12 @@ const chargeColumns: ColumnDef<GeneratedCharge>[] = [
   { 
     header: "Tipo", 
     accessor: "chargeType",
-    render: (item) => chargeTypeLabels[item.chargeType] || item.chargeType
+    render: (item) => chargeTypeLabels[item.chargeType || item.charge_type] || item.chargeType || item.charge_type
   },
   { 
     header: "Cuota", 
     accessor: "installmentNumber",
-    render: (item) => item.installmentNumber || "-"
+    render: (item) => item.quota ?? (item.installmentNumber ?? item.installment_number ?? "-")
   },
   { header: "Periodo", accessor: "period", render: (item) => item.period || "-" },
   { 
@@ -67,7 +67,7 @@ const chargeColumns: ColumnDef<GeneratedCharge>[] = [
   { 
     header: "Vencimiento", 
     accessor: "dueDate",
-    render: (item) => new Date(item.dueDate).toLocaleDateString()
+    render: (item) => new Date((item.dueDate || item.due_date) || "").toLocaleDateString()
   },
 ];
 
@@ -284,13 +284,13 @@ function EnrollmentFormDialog({
               <>
                 <div className="grid grid-cols-3 gap-4 text-sm">
                   <div>
-                    <strong>Estudiante:</strong> {previewData.studentName}
+                    <strong>Estudiante:</strong> {previewData.studentName || previewData.student_name}
                   </div>
                   <div>
-                    <strong>Grado:</strong> {previewData.gradeName}
+                    <strong>Grado:</strong> {previewData.gradeName || previewData.grade_name}
                   </div>
                   <div>
-                    <strong>Año:</strong> {previewData.yearName}
+                    <strong>Año:</strong> {previewData.yearName || previewData.year_name}
                   </div>
                 </div>
 
@@ -328,13 +328,13 @@ function EnrollmentFormDialog({
               <>
                 <div className="grid grid-cols-3 gap-4 text-sm">
                   <div>
-                    <strong>Estudiante:</strong> {confirmedData.studentName}
+                    <strong>Estudiante:</strong> {confirmedData.studentName || confirmedData.student_name}
                   </div>
                   <div>
-                    <strong>Grado:</strong> {confirmedData.gradeName}
+                    <strong>Grado:</strong> {confirmedData.gradeName || confirmedData.grade_name}
                   </div>
                   <div>
-                    <strong>Año:</strong> {confirmedData.yearName}
+                    <strong>Año:</strong> {confirmedData.yearName || confirmedData.year_name}
                   </div>
                 </div>
 
@@ -400,21 +400,21 @@ function EnrollmentFormDialog({
               </>
             )}
 
-  {viewState === "success" && (
-    <>
-      <Button variant="outline" onClick={() => onOpenChange(false)}>
-        Cerrar
-      </Button>
-      <Button onClick={() => window.open(enrollmentsService.getPdfUrl(confirmedData?.id || ""), "_blank")}>
-        Descargar PDF
-      </Button>
-      {onRegisterPayment && (
-        <Button onClick={() => onRegisterPayment(confirmedData?.id || "", formValues.enrollmentInstallments || 0)}>
-          Registrar pago
-        </Button>
-      )}
-    </>
-  )}
+            {viewState === "success" && (
+              <>
+                <Button variant="outline" onClick={() => onOpenChange(false)}>
+                  Cerrar
+                </Button>
+                <Button onClick={() => window.open(confirmedData?.pdfUrl || confirmedData?.pdf_url || "", "_blank")}>
+                  Descargar PDF
+                </Button>
+                {onRegisterPayment && (
+                  <Button onClick={() => onRegisterPayment(confirmedData?.id || "", formValues.enrollmentInstallments || 0)}>
+                    Registrar pago
+                  </Button>
+                )}
+              </>
+            )}
           </DialogFooter>
         </div>
       </DialogContent>

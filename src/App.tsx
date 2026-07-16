@@ -35,6 +35,8 @@ const RegisterPaymentPage = lazy(() => import("@/pages/payments/RegisterPaymentP
 const PaymentSearchPage = lazy(() => import("@/pages/payments/PaymentSearchPage"));
 const PayEnrollmentPage = lazy(() => import("@/pages/payments/PayEnrollmentPage"));
 const PayTuitionPage = lazy(() => import("@/pages/payments/PayTuitionPage"));
+const PaySuppliesPage = lazy(() => import("@/pages/payments/PaySuppliesPage"));
+const PaymentsReportPage = lazy(() => import("@/pages/payments/PaymentsReportPage"));
 
 // Loading fallback component
 function PageLoader() {
@@ -243,6 +245,25 @@ export default function App() {
               <Route path="/pagos/pensiones/:enrollmentId" element={
                 <Suspense fallback={<PageLoader />}>
                   <PayTuitionPage />
+                </Suspense>
+              } />
+
+              {/* Payments - Pay Supplies (RF-HU-022.5) */}
+              <Route path="/pagos/utiles" element={
+                <Suspense fallback={<PageLoader />}>
+                  <PaymentSearchPage targetRoute="/pagos/utiles" />
+                </Suspense>
+              } />
+              <Route path="/pagos/utiles/:enrollmentId" element={
+                <Suspense fallback={<PageLoader />}>
+                  <PaySuppliesPage />
+                </Suspense>
+              } />
+
+              {/* Payments Report (RF-HU-022.6) */}
+              <Route path="/pagos/reporte" element={
+                <Suspense fallback={<PageLoader />}>
+                  <PaymentsReportPage />
                 </Suspense>
               } />
             </Route>

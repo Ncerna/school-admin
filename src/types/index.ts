@@ -195,7 +195,10 @@ export type { FeeSchedule, FeeSchedulePayload } from "./fee-schedule";
 export type { EnrollmentListItem, GeneratedCharge, EnrollmentPreview, EnrollmentConfirmed, EnrollmentPayload } from "./enrollment";
 
 // Re-export Payment types
-export type { Charge, PaymentMethodEntry, RegisterPaymentPayload, PaymentAllocation, PaymentResult, PaymentBatchResult, PaymentMethod } from "./payment";
+export type { Charge, ChargeApiResponse, PaymentMethodEntry, PaymentMethodEntryPayload, RegisterPaymentPayload, PaymentAllocation, PaymentResult, PaymentBatchResult, PaymentMethod } from "./payment";
+
+// Re-export Payment Report types
+export type { PaymentReportRow, PaymentReportFilters, PaymentReportSummary, PaymentReportResponse } from "./payment-report";
 
 // Type aliases for backward compatibility (Spanish names)
 export type { Level as Nivel, Grade as Grado, Classroom as Aula, Course as Curso, Shift as Turno, AcademicYear as AnioAcademico, EvaluationType as TipoEvaluacion, Role as Rol, MenuAccess as MenuAcceso, Teacher as Docente, Student as Estudiante, Guardian as Apoderado, School as Colegio, Publication as Publicacion };

@@ -7,10 +7,13 @@ import type { SelectOption } from "@/types";
  * These endpoints return data directly in the `data` property, not paginated.
  * Reused by any form that needs to populate a dropdown from a catalog.
  * Call the returned `fetch` function when the form dialog opens (lazy loading).
+ * 
+ * @param autoFetch - If true, fetches options on mount. Default: false (lazy loading).
  */
 export function useOptions<T extends { id: string | number; name: string }>(
   endpoint: string,
-  mapToOption: (item: T) => SelectOption
+  mapToOption: (item: T) => SelectOption,
+  autoFetch: boolean = false
 ) {
   const [options, setOptions] = useState<SelectOption[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -34,13 +37,13 @@ export function useOptions<T extends { id: string | number; name: string }>(
     }
   }, [endpoint, mapToOption]);
 
-  // Auto-fetch on mount (only once, not in StrictMode)
+  // Auto-fetch on mount only if autoFetch is true (only once, not in StrictMode)
   useEffect(() => {
-    if (isFirstRender.current) {
+    if (autoFetch && isFirstRender.current) {
       isFirstRender.current = false;
       fetch();
     }
-  }, [fetch]);
+  }, [autoFetch, fetch]);
 
   return { options, isLoading, fetch };
 }

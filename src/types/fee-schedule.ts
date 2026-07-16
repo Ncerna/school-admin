@@ -7,7 +7,7 @@ export interface FeeSchedule {
   gradeId: string;
   gradeName: string;
   chargeTypeId: string;
-  chargeTypeName: string;
+  chargeTypeCode: string;
   amount: number;
 }
 

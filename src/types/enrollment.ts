@@ -12,13 +12,18 @@ export interface EnrollmentListItem {
 
 // Generated charge (preview/confirm)
 export interface GeneratedCharge {
-  id: string;
+  id: number;
   chargeType: "ENROLLMENT" | "TUITION" | "SUPPLIES";
   installmentNumber?: number;
   period?: string;
   amount: number;
   dueDate: string;
   status?: "Pendiente" | "Pagado" | "Vencido";
+  // API returns snake_case
+  charge_type?: "ENROLLMENT" | "TUITION" | "SUPPLIES";
+  installment_number?: number;
+  due_date?: string;
+  quota?: string;
 }
 
 // Preview response
@@ -27,11 +32,15 @@ export interface EnrollmentPreview {
   gradeName: string;
   yearName: string;
   charges: GeneratedCharge[];
+  // API returns snake_case
+  student_name?: string;
+  grade_name?: string;
+  year_name?: string;
 }
 
 // Confirmed enrollment response
 export interface EnrollmentConfirmed {
-  id: string;
+  id: string | null;
   studentName: string;
   gradeName: string;
   yearName: string;
@@ -39,6 +48,11 @@ export interface EnrollmentConfirmed {
   status: "Activo" | "Inactivo";
   pdfUrl: string;
   charges: GeneratedCharge[];
+  // API returns snake_case
+  student_name?: string;
+  grade_name?: string;
+  year_name?: string;
+  pdf_url?: string;
 }
 
 // Payload for preview/confirm

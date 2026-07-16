@@ -19,6 +19,7 @@ import {
   Settings,
   FileText,
   Wallet,
+  FileBarChart,
   type LucideIcon,
 } from "lucide-react";
 
@@ -80,6 +81,7 @@ export const mainNavItems: NavItem[] = [
       { title: "Registrar pago", url: "/pagos/registrar", icon: FileText },
       { title: "Completar matrícula", url: "/pagos/matricula", icon: FileText },
       { title: "Pagar pensiones", url: "/pagos/pensiones", icon: FileText },
+      { title: "Reporte de pagos", url: "/pagos/reporte", icon: FileBarChart },
     ],
   },
   {

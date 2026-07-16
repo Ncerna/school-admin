@@ -1,5 +1,18 @@
 // Types for Payment module (RF-HU-022.3)
 
+// API response format (snake_case)
+export interface ChargeApiResponse {
+  id: number;
+  charge_type: string;
+  installment_number: number | null;
+  period: string | null;
+  quota: string | null;
+  amount: number;
+  due_date: string;
+  status: string;
+}
+
+// Frontend type (camelCase)
 export interface Charge {
   id: number;
   chargeType: string;
@@ -11,16 +24,28 @@ export interface Charge {
   dueDate: string;
 }
 
+// Re-export for use in services
+export type { ChargeApiResponse as ChargeApi };
+
+// Frontend type (camelCase)
 export interface PaymentMethodEntry {
   paymentMethodCode: string;
   amount: number;
   reference: string | null;
 }
 
+// API payload format (snake_case)
+export interface PaymentMethodEntryPayload {
+  payment_method_code: string;
+  amount: number;
+  reference: string | null;
+}
+
+// API payload for register
 export interface RegisterPaymentPayload {
   payableType: "enrollment";
   payableId: number;
-  methods: PaymentMethodEntry[];
+  methods: PaymentMethodEntryPayload[];
   chargeIds: number[] | null;
   chargeTypeCode?: string | null;
 }

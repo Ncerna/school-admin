@@ -1,6 +1,7 @@
-// Types for Payment Report module (RF-HU-022.6)
+// Types for Payments Report module (RF-HU-022.6)
 
 export interface PaymentReportRow {
+  id: string;
   paymentId: number;
   paidAt: string;
   amount: number;

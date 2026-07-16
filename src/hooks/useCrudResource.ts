@@ -41,9 +41,6 @@ export function useCrudResource<TEntity extends { id: string }, TPayload = Parti
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  // Use a ref to track if this is the first render to avoid double fetch in StrictMode
-  const isFirstRender = useRef(true);
-
   const fetchPage = useCallback(async () => {
     setIsLoading(true);
     setError(null);
@@ -77,14 +74,11 @@ export function useCrudResource<TEntity extends { id: string }, TPayload = Parti
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, limit, debouncedSearch, sortBy, sortDir, JSON.stringify(extraParams)]);
 
+  // Fetch on mount and when params change
   useEffect(() => {
-    // In StrictMode, effects run twice in development. This ref prevents the second run.
-    if (isFirstRender.current) {
-      isFirstRender.current = false;
-      fetchPage();
-    }
+    fetchPage();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [page, limit, debouncedSearch, sortBy, sortDir, JSON.stringify(extraParams)]);
 
   // Reset to page 1 whenever the search term changes so results aren't empty.
   useEffect(() => {

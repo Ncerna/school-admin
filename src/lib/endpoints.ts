@@ -35,8 +35,9 @@ export const ENDPOINTS = {
   payments: "/payments",
   enrollmentCharges: (id: number) => `/enrollments/${id}/charges`,
   paymentMethods: "/payment-methods",
-  paymentMethodsOptions: "/payment-methods/options",
+ 
   payEnrollment: (id: number) => `/enrollments/${id}/pay-enrollment`,
   payTuition: (id: number) => `/enrollments/${id}/pay-tuition`,
+  paySupplies: (id: number) => `/enrollments/${id}/pay-supplies`,
   paymentsReport: "/payments/report",
 } as const;

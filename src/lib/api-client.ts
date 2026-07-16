@@ -228,4 +228,21 @@ export const apiClient = {
   /** Request that returns full response including data on error */
   requestWithData: <T>(path: string, options?: RequestOptions) =>
     requestWithData<T>(path, options),
+
+  /** Request that returns raw data without { success, data } wrapper */
+  getDirect: async <T>(path: string, params?: Record<string, unknown>): Promise<T> => {
+    const response = await fetch(`${API_BASE_URL}${path}${buildQueryString(params)}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${tokenStorage.getAccessToken() || ""}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new ApiError(`Error ${response.status}: ${response.statusText}`, response.status);
+    }
+
+    return response.json();
+  },
 };
