@@ -79,3 +79,10 @@ export interface PaymentMethod {
   name: string;
   status: "Activo" | "Inactivo";
 }
+
+// ChargeType option type for select dropdown
+export interface ChargeTypeOption {
+  id: number;
+  code: string;
+  name: string;
+}

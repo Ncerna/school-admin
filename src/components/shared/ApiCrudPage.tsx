@@ -40,6 +40,7 @@ interface ApiCrudPageProps<T extends { id: string }, TPayload = Omit<T, "id">> {
     setSearch: (value: string) => void;
     refetch: () => void;
     searchPlaceholder: string;
+    setPage: (page: number) => void;
   }) => ReactNode;
   /** Custom form dialog component (for complex forms) - if not provided, uses default FormDialog */
   renderFormDialog?: (props: {
@@ -56,6 +57,12 @@ interface ApiCrudPageProps<T extends { id: string }, TPayload = Omit<T, "id">> {
   onDataChange?: (items: T[]) => void;
   /** Custom delete handler (for confirmation dialogs) */
   onCustomDelete?: (item: T) => Promise<void> | void;
+  /** Read-only mode - hides the create button and edit/delete actions */
+  readOnly?: boolean;
+  /** Summary data to display (for reports) */
+  summary?: any;
+  /** Custom summary component to render (for reports) */
+  summaryComponent?: (summary: any) => ReactNode;
 }
 
 /**
@@ -80,8 +87,11 @@ export function ApiCrudPage<T extends { id: string }, TPayload = Omit<T, "id">>(
   onViewDetails,
   onDataChange,
   onCustomDelete,
+  readOnly = false,
+  summary,
+  summaryComponent,
 }: ApiCrudPageProps<T, TPayload>) {
-  const resource = useCrudResource<T, TPayload>(api);
+  const resource = useCrudResource<T, TPayload, any>(api);
   const [formOpen, setFormOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<T | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<T | null>(null);
@@ -153,16 +163,31 @@ export function ApiCrudPage<T extends { id: string }, TPayload = Omit<T, "id">>(
     }
   }
 
+  // Use summary from props or from resource
+  const displaySummary = summary ?? resource.summary;
+
+  // Default handlers for DataTable (required by interface)
+  const handleEdit = readOnly ? (() => {}) : openEdit;
+  const handleDeleteRow = readOnly ? (() => {}) : ((item: T) => {
+    if (onCustomDelete) {
+      onCustomDelete(item);
+    } else {
+      setDeleteTarget(item);
+    }
+  });
+
   return (
     <div>
       <PageHeader
         title={title}
         description={description}
         action={
-          <LoadingButton onClick={openCreate}>
-            <Plus className="h-4 w-4" />
-            {newLabel}
-          </LoadingButton>
+          !readOnly && (
+            <LoadingButton onClick={openCreate}>
+              <Plus className="h-4 w-4" />
+              {newLabel}
+            </LoadingButton>
+          )
         }
       />
 
@@ -178,19 +203,17 @@ export function ApiCrudPage<T extends { id: string }, TPayload = Omit<T, "id">>(
         setSearch: resource.setSearch,
         refetch: resource.refetch,
         searchPlaceholder,
+        setPage: resource.setPage,
       })}
+
+      {/* Summary component */}
+      {displaySummary && summaryComponent && summaryComponent(displaySummary)}
 
       <DataTable
         columns={columns}
         data={resource.items}
-        onEdit={openEdit}
-        onDelete={(item) => {
-          if (onCustomDelete) {
-            onCustomDelete(item);
-          } else {
-            setDeleteTarget(item);
-          }
-        }}
+        onEdit={handleEdit}
+        onDelete={handleDeleteRow}
         onViewDetails={onViewDetails}
         emptyMessage={resource.search ? "No se encontraron resultados." : "No hay registros todavía."}
         isLoading={resource.isLoading}
@@ -200,6 +223,7 @@ export function ApiCrudPage<T extends { id: string }, TPayload = Omit<T, "id">>(
         onSort={resource.toggleSort}
         currentPage={resource.page}
         itemsPerPage={resource.pagination?.limit ?? 10}
+        hideRowActions={readOnly}
       />
 
       <Pagination pagination={resource.pagination} onPageChange={resource.setPage} disabled={resource.isLoading} />

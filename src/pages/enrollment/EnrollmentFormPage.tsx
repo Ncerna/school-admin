@@ -423,12 +423,24 @@ function EnrollmentFormDialog({
 }
 
 export default function EnrollmentFormPage() {
-  // Load options dynamically when the modal opens
-  const { options: yearOptions, isLoading: yearsLoading, fetch: fetchYears } = useOptions<{ id: string; name: string }>(
+  // Load options for filters (auto-fetch on mount)
+  const { options: filterYearOptions, isLoading: filterYearsLoading } = useOptions<{ id: string; name: string }>(
+    ENDPOINTS.AcademicYears,
+    (n) => ({ label: n.name, value: String(n.id) }),
+    true // Auto-fetch for filter dropdowns
+  );
+  const { options: filterGradeOptions, isLoading: filterGradesLoading } = useOptions<{ id: string; name: string }>(
+    ENDPOINTS.grades,
+    (g) => ({ label: g.name, value: String(g.id) }),
+    true // Auto-fetch for filter dropdowns
+  );
+
+  // Load options for the form (lazy loading)
+  const { options: formYearOptions, isLoading: formYearsLoading, fetch: fetchYears } = useOptions<{ id: string; name: string }>(
     ENDPOINTS.AcademicYears,
     (n) => ({ label: n.name, value: String(n.id) })
   );
-  const { options: gradeOptions, isLoading: gradesLoading, fetch: fetchGrades } = useOptions<{ id: string; name: string }>(
+  const { options: formGradeOptions, isLoading: formGradesLoading, fetch: fetchGrades } = useOptions<{ id: string; name: string }>(
     ENDPOINTS.grades,
     (g) => ({ label: g.name, value: String(g.id) })
   );
@@ -440,7 +452,7 @@ export default function EnrollmentFormPage() {
   }, [fetchYears, fetchGrades]);
 
   // Combined loading state for the form
-  const isFormLoading = yearsLoading || gradesLoading;
+  const isFormLoading = formYearsLoading || formGradesLoading;
 
   // Form state
   const [previewData, setPreviewData] = useState<EnrollmentPreview | null>(null);
@@ -503,7 +515,7 @@ export default function EnrollmentFormPage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="">Todos los años</SelectItem>
-                {yearOptions.map((option) => (
+                {filterYearOptions.map((option) => (
                   <SelectItem key={option.value} value={option.value}>
                     {option.label}
                   </SelectItem>
@@ -517,7 +529,7 @@ export default function EnrollmentFormPage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="">Todos los grados</SelectItem>
-                {gradeOptions.map((option) => (
+                {filterGradeOptions.map((option) => (
                   <SelectItem key={option.value} value={option.value}>
                     {option.label}
                   </SelectItem>
@@ -535,8 +547,8 @@ export default function EnrollmentFormPage() {
           <EnrollmentFormDialog
             open={open}
             onOpenChange={onOpenChange}
-            yearOptions={yearOptions}
-            gradeOptions={gradeOptions}
+            yearOptions={formYearOptions}
+            gradeOptions={formGradeOptions}
             isFormLoading={isFormLoading}
             onPreview={handlePreview}
             onConfirm={handleConfirm}

@@ -8,7 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { apiClient } from "@/lib/api-client";
 import { ENDPOINTS } from "@/lib/endpoints";
 import { Badge } from "@/components/ui/badge";
-import type { EnrollmentListItem } from "@/types";
+import { useOptions } from "@/hooks/useOptions";
+import type { EnrollmentListItem, ChargeTypeOption } from "@/types";
 
 interface PaymentSearchPageProps {
   targetRoute?: string;
@@ -19,23 +20,23 @@ function isActiveStatus(status: string): boolean {
   return status === "Activo" || status === "Active";
 }
 
-// Charge type options
-const chargeTypeOptions = [
-  { value: "ENROLLMENT", label: "Matrícula" },
-  { value: "TUITION", label: "Pensión" },
-  { value: "SUPPLIES", label: "Útiles" },
-];
-
 export default function PaymentSearchPage({ targetRoute = "/pagos/registrar" }: PaymentSearchPageProps) {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [search, setSearch] = useState("");
-  // Get chargeType from URL query parameter, default to ENROLLMENT
+  // Get chargeType from URL query parameter, default to empty (will show placeholder)
   const urlChargeType = searchParams.get("chargeType");
-  const [selectedChargeType, setSelectedChargeType] = useState<string>(urlChargeType || "ENROLLMENT");
+  const [selectedChargeType, setSelectedChargeType] = useState<string>(urlChargeType || "");
   const [results, setResults] = useState<EnrollmentListItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Load charge types from API
+  const { options: chargeTypeOptions, isLoading: chargeTypesLoading } = useOptions<ChargeTypeOption>(
+    ENDPOINTS.chargeTypes,
+    (c) => ({ label: c.name, value: c.code }),
+    true // Auto-fetch on mount
+  );
 
   async function handleSearch() {
     if (!search.trim()) return;
@@ -51,7 +52,18 @@ export default function PaymentSearchPage({ targetRoute = "/pagos/registrar" }: 
     }
   }
 
+  function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      handleSearch();
+    }
+  }
+
   function handleSelect(enrollment: EnrollmentListItem) {
+    if (!selectedChargeType) {
+      setError("Por favor seleccione un tipo de cobro.");
+      return;
+    }
     if (isActiveStatus(enrollment.status)) {
       // Navigate with chargeType as query parameter
       navigate(`${targetRoute}/${enrollment.id}?chargeType=${selectedChargeType}`);
@@ -73,6 +85,7 @@ export default function PaymentSearchPage({ targetRoute = "/pagos/registrar" }: 
             <SelectValue placeholder="Tipo de cobro" />
           </SelectTrigger>
           <SelectContent>
+           
             {chargeTypeOptions.map((option) => (
               <SelectItem key={option.value} value={option.value}>
                 {option.label}
@@ -83,6 +96,7 @@ export default function PaymentSearchPage({ targetRoute = "/pagos/registrar" }: 
         <SearchInput
           value={search}
           onChange={setSearch}
+          onKeyDown={handleKeyDown}
           placeholder="Buscar por nombre o DNI..."
         />
         <Button onClick={handleSearch} disabled={isLoading || !search.trim()}>

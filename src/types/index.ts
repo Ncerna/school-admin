@@ -195,7 +195,7 @@ export type { FeeSchedule, FeeSchedulePayload } from "./fee-schedule";
 export type { EnrollmentListItem, GeneratedCharge, EnrollmentPreview, EnrollmentConfirmed, EnrollmentPayload } from "./enrollment";
 
 // Re-export Payment types
-export type { Charge, ChargeApiResponse, PaymentMethodEntry, PaymentMethodEntryPayload, RegisterPaymentPayload, PaymentAllocation, PaymentResult, PaymentBatchResult, PaymentMethod } from "./payment";
+export type { Charge, ChargeApiResponse, PaymentMethodEntry, PaymentMethodEntryPayload, RegisterPaymentPayload, PaymentAllocation, PaymentResult, PaymentBatchResult, PaymentMethod, ChargeTypeOption } from "./payment";
 
 // Re-export Payment Report types
 export type { PaymentReportRow, PaymentReportFilters, PaymentReportSummary, PaymentReportResponse } from "./payment-report";
