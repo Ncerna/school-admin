@@ -34,6 +34,7 @@ const PublicationFormPage = lazy(() => import("@/pages/publications/PublicationF
 const RegisterPaymentPage = lazy(() => import("@/pages/payments/RegisterPaymentPage"));
 const PaymentSearchPage = lazy(() => import("@/pages/payments/PaymentSearchPage"));
 const PaymentsReportPage = lazy(() => import("@/pages/payments/PaymentsReportPage"));
+const TeacherAssignmentPage = lazy(() => import("@/pages/teacher-assignments/TeacherAssignmentPage"));
 
 // Loading fallback component
 function PageLoader() {
@@ -225,6 +226,13 @@ export default function App() {
               <Route path="/pagos/reporte" element={
                 <Suspense fallback={<PageLoader />}>
                   <PaymentsReportPage />
+                </Suspense>
+              } />
+
+              {/* Teacher Assignments (RF-HU-024) */}
+              <Route path="/asignaciones-docente" element={
+                <Suspense fallback={<PageLoader />}>
+                  <TeacherAssignmentPage />
                 </Suspense>
               } />
             </Route>

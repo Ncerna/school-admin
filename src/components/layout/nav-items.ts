@@ -66,6 +66,10 @@ export const mainNavItems: NavItem[] = [
     title: "Docentes",
     url: "/docentes",
     icon: UserCog,
+    items: [
+      { title: "Docentes", url: "/docentes", icon: UserCog },
+      { title: "Asignaciones docentes", url: "/asignaciones-docente", icon: UserCog },
+    ],
   },
   {
     title: "Matrícula",
