@@ -79,8 +79,7 @@ export const mainNavItems: NavItem[] = [
     items: [
       { title: "Tarifas", url: "/fee-schedules", icon: FileText },
       { title: "Registrar pago", url: "/pagos/registrar", icon: FileText },
-      { title: "Completar matrícula", url: "/pagos/matricula", icon: FileText },
-      { title: "Pagar pensiones", url: "/pagos/pensiones", icon: FileText },
+     
       { title: "Reporte de pagos", url: "/pagos/reporte", icon: FileBarChart },
     ],
   },

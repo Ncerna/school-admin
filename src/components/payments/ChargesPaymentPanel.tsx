@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { Loader2, X } from "lucide-react";
+import { Loader2, X, ArrowLeft } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { paymentsService } from "@/services/payments.service";
 import { LoadingButton } from "@/components/common/LoadingButton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -11,6 +12,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { ApiError } from "@/types/api";
 import { useOptions } from "@/hooks/useOptions";
 import { ENDPOINTS } from "@/lib/endpoints";
+import { Button } from "@/components/ui/button";
 
 import type { Charge, PaymentMethod, PaymentBatchResult } from "@/types";
 import type { PaymentMethodEntry, PaymentMethodEntryPayload } from "@/types/payment";
@@ -19,6 +21,7 @@ interface ChargesPaymentPanelProps {
   payableId: number;
   chargeTypeFilter?: string;
   submitEndpoint: string;
+  studentName?: string;
 }
 
 // Charge type labels mapping
@@ -147,7 +150,8 @@ function getPaymentMethodName(code: string, paymentMethods: { value: string; lab
   return method?.label || code;
 }
 
-export function ChargesPaymentPanel({ payableId, chargeTypeFilter, submitEndpoint }: ChargesPaymentPanelProps) {
+export function ChargesPaymentPanel({ payableId, chargeTypeFilter, submitEndpoint, studentName }: ChargesPaymentPanelProps) {
+  const navigate = useNavigate();
   const [charges, setCharges] = useState<Charge[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -160,6 +164,8 @@ export function ChargesPaymentPanel({ payableId, chargeTypeFilter, submitEndpoin
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [paymentResult, setPaymentResult] = useState<PaymentBatchResult | null>(null);
 
+  console.log("EEEE: ",studentName)
+   console.log("paymentResult: ",paymentResult)
   // Load payment methods using useOptions (auto-fetch on mount for visible dropdowns)
   const { options: paymentMethods, isLoading: methodsLoading } = useOptions<PaymentMethod>(
     ENDPOINTS.paymentMethods,
@@ -178,7 +184,6 @@ export function ChargesPaymentPanel({ payableId, chargeTypeFilter, submitEndpoin
     setError(null);
     try {
       const data = await paymentsService.getCharges(payableId, chargeTypeFilter);
-      console.log(chargeTypeFilter)
       setCharges(data);
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "No se pudieron cargar los cargos.");
@@ -188,7 +193,7 @@ export function ChargesPaymentPanel({ payableId, chargeTypeFilter, submitEndpoin
   }, [payableId, chargeTypeFilter]);
 
   // Get pending charges (not Paid)
-  const pendingCharges = useMemo( () => charges.filter((c) => c.status !== "Paid"), [charges]);
+  const pendingCharges = useMemo(() => charges.filter((c) => c.status !== "Paid"), [charges]);
 
   // Calculate total selected (sum of balance for selected charges)
   const totalSelected = useMemo(
@@ -302,8 +307,29 @@ export function ChargesPaymentPanel({ payableId, chargeTypeFilter, submitEndpoin
     );
   }
 
+  // Get charge type label
+  const chargeTypeLabel = chargeTypeFilter ? chargeTypeLabels[chargeTypeFilter] : "todos los cargos";
+
   return (
     <div className="space-y-4">
+      {/* Back Button and Student Info */}
+      <div className="flex items-center justify-between mb-2">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => navigate("/pagos/registrar")}
+        >
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Regresar
+        </Button>
+        
+        {studentName && (
+          <div className="text-sm text-muted-foreground">
+            Estudiante: <span className="font-medium text-foreground">{studentName}</span>
+          </div>
+        )}
+      </div>
+
       {error && (
         <div className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
           {error}

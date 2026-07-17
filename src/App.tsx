@@ -33,9 +33,6 @@ const PublicationPage = lazy(() => import("@/pages/publications/PublicationPage"
 const PublicationFormPage = lazy(() => import("@/pages/publications/PublicationFormPage"));
 const RegisterPaymentPage = lazy(() => import("@/pages/payments/RegisterPaymentPage"));
 const PaymentSearchPage = lazy(() => import("@/pages/payments/PaymentSearchPage"));
-const PayEnrollmentPage = lazy(() => import("@/pages/payments/PayEnrollmentPage"));
-const PayTuitionPage = lazy(() => import("@/pages/payments/PayTuitionPage"));
-const PaySuppliesPage = lazy(() => import("@/pages/payments/PaySuppliesPage"));
 const PaymentsReportPage = lazy(() => import("@/pages/payments/PaymentsReportPage"));
 
 // Loading fallback component
@@ -211,8 +208,8 @@ export default function App() {
                   <EnrollmentFormPage />
                 </Suspense>
               } />
-
-              {/* Payments (RF-HU-022.3) */}
+              
+              {/* Payments (RF-HU-022.3) - Single unified flow */}
               <Route path="/pagos/registrar" element={
                 <Suspense fallback={<PageLoader />}>
                   <PaymentSearchPage targetRoute="/pagos/registrar" />
@@ -221,42 +218,6 @@ export default function App() {
               <Route path="/pagos/registrar/:enrollmentId" element={
                 <Suspense fallback={<PageLoader />}>
                   <RegisterPaymentPage />
-                </Suspense>
-              } />
-
-              {/* Payments - Pay Enrollment (RF-HU-022.4) */}
-              <Route path="/pagos/matricula" element={
-                <Suspense fallback={<PageLoader />}>
-                  <PaymentSearchPage targetRoute="/pagos/matricula" />
-                </Suspense>
-              } />
-              <Route path="/pagos/matricula/:enrollmentId" element={
-                <Suspense fallback={<PageLoader />}>
-                  <PayEnrollmentPage />
-                </Suspense>
-              } />
-
-              {/* Payments - Pay Tuition (RF-HU-022.5) */}
-              <Route path="/pagos/pensiones" element={
-                <Suspense fallback={<PageLoader />}>
-                  <PaymentSearchPage targetRoute="/pagos/pensiones" />
-                </Suspense>
-              } />
-              <Route path="/pagos/pensiones/:enrollmentId" element={
-                <Suspense fallback={<PageLoader />}>
-                  <PayTuitionPage />
-                </Suspense>
-              } />
-
-              {/* Payments - Pay Supplies (RF-HU-022.5) */}
-              <Route path="/pagos/utiles" element={
-                <Suspense fallback={<PageLoader />}>
-                  <PaymentSearchPage targetRoute="/pagos/utiles" />
-                </Suspense>
-              } />
-              <Route path="/pagos/utiles/:enrollmentId" element={
-                <Suspense fallback={<PageLoader />}>
-                  <PaySuppliesPage />
                 </Suspense>
               } />
 

@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { Search } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { SearchInput } from "@/components/common/SearchInput";
 import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { apiClient } from "@/lib/api-client";
 import { ENDPOINTS } from "@/lib/endpoints";
 import { Badge } from "@/components/ui/badge";
@@ -18,9 +19,20 @@ function isActiveStatus(status: string): boolean {
   return status === "Activo" || status === "Active";
 }
 
-export default function PaymentSearchPage({ targetRoute = "/pagos/matricula" }: PaymentSearchPageProps) {
+// Charge type options
+const chargeTypeOptions = [
+  { value: "ENROLLMENT", label: "Matrícula" },
+  { value: "TUITION", label: "Pensión" },
+  { value: "SUPPLIES", label: "Útiles" },
+];
+
+export default function PaymentSearchPage({ targetRoute = "/pagos/registrar" }: PaymentSearchPageProps) {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [search, setSearch] = useState("");
+  // Get chargeType from URL query parameter, default to ENROLLMENT
+  const urlChargeType = searchParams.get("chargeType");
+  const [selectedChargeType, setSelectedChargeType] = useState<string>(urlChargeType || "ENROLLMENT");
   const [results, setResults] = useState<EnrollmentListItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -41,7 +53,8 @@ export default function PaymentSearchPage({ targetRoute = "/pagos/matricula" }: 
 
   function handleSelect(enrollment: EnrollmentListItem) {
     if (isActiveStatus(enrollment.status)) {
-      navigate(`${targetRoute}/${enrollment.id}`);
+      // Navigate with chargeType as query parameter
+      navigate(`${targetRoute}/${enrollment.id}?chargeType=${selectedChargeType}`);
     } else {
       setError("Este estudiante no tiene una matrícula activa.");
     }
@@ -55,6 +68,18 @@ export default function PaymentSearchPage({ targetRoute = "/pagos/matricula" }: 
       />
 
       <div className="mb-4 flex gap-2">
+        <Select value={selectedChargeType} onValueChange={setSelectedChargeType}>
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="Tipo de cobro" />
+          </SelectTrigger>
+          <SelectContent>
+            {chargeTypeOptions.map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
         <SearchInput
           value={search}
           onChange={setSearch}
