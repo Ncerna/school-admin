@@ -40,4 +40,6 @@ export const ENDPOINTS = {
   payTuition: (id: number) => `/enrollments/${id}/pay-tuition`,
   paySupplies: (id: number) => `/enrollments/${id}/pay-supplies`,
   paymentsReport: "/payments/report",
+  teacherAssignments: "/teacher-assignments",
+  teacherAssignmentReport: "/teacher-assignment-report",
 } as const;

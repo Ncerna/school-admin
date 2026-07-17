@@ -10,7 +10,7 @@ import type { SelectOption } from "@/types";
  * 
  * @param autoFetch - If true, fetches options on mount. Default: false (lazy loading).
  */
-export function useOptions<T extends { id: string | number; name: string }>(
+export function useOptions<T extends { id: string | number }>(
   endpoint: string,
   mapToOption: (item: T) => SelectOption,
   autoFetch: boolean = false
