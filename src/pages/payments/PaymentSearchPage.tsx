@@ -80,7 +80,7 @@ export default function PaymentSearchPage({ targetRoute = "/pagos/registrar" }: 
       />
 
       <div className="mb-4 flex gap-2">
-        <Select value={selectedChargeType} onValueChange={setSelectedChargeType}>
+        <Select value={selectedChargeType} onValueChange={setSelectedChargeType} disabled={chargeTypesLoading}>
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="Tipo de cobro" />
           </SelectTrigger>
