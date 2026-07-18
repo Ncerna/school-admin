@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
+import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import type { TeacherAssignmentTree, GradeAssignment } from "@/types/teacher-assignment";
 
 interface AssignmentTreeProps {
@@ -13,6 +14,7 @@ export function AssignmentTree({ data, onDataChange, hasChanges }: AssignmentTre
   const [localData, setLocalData] = useState<TeacherAssignmentTree | null>(null);
   const [expandedGrades, setExpandedGrades] = useState<Set<number>>(new Set());
   const [isMobile, setIsMobile] = useState(false);
+  const [gradeToUnassign, setGradeToUnassign] = useState<GradeAssignment | null>(null);
 
   // Sync with server data
   useEffect(() => {
@@ -38,13 +40,23 @@ export function AssignmentTree({ data, onDataChange, hasChanges }: AssignmentTre
     const grade = localData.grades.find((g) => g.gradeId === gradeId);
     if (!grade) return;
 
-    // If unchecking and has assigned courses, show confirmation
+    // If unchecking and has assigned courses, show confirmation dialog
     const hasAssignedCourses = grade.courses.some((c) => c.assigned);
     if (grade.assigned && hasAssignedCourses) {
-      if (!confirm("¿Desea quitar este grado y todos sus cursos asignados?")) {
-        return;
-      }
+      setGradeToUnassign(grade);
+      return;
     }
+
+    // If no assigned courses or checking, proceed directly
+    performGradeToggle(gradeId);
+  };
+
+  // Perform the actual grade toggle
+  const performGradeToggle = (gradeId: number) => {
+    if (!localData) return;
+
+    const grade = localData.grades.find((g) => g.gradeId === gradeId);
+    if (!grade) return;
 
     const updatedGrades = localData.grades.map((g) => {
       if (g.gradeId === gradeId) {
@@ -233,6 +245,24 @@ export function AssignmentTree({ data, onDataChange, hasChanges }: AssignmentTre
           </div>
         );
       })}
+
+      <ConfirmDialog
+        open={!!gradeToUnassign}
+        onOpenChange={(open) => !open && setGradeToUnassign(null)}
+        title="¿Quitar grado?"
+        description={
+          gradeToUnassign
+            ? `¿Está seguro que desea quitar el grado "${gradeToUnassign.gradeName}"? Este grado tiene ${gradeToUnassign.courses.filter((c) => c.assigned).length} cursos asignados.`
+            : ""
+        }
+        onConfirm={() => {
+          if (gradeToUnassign) {
+            performGradeToggle(gradeToUnassign.gradeId);
+            setGradeToUnassign(null);
+          }
+        }}
+        confirmLabel="Quitar"
+      />
     </div>
   );
 }

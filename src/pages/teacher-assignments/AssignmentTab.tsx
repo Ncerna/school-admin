@@ -34,6 +34,9 @@ export function AssignmentTab() {
   const [error, setError] = useState<string | null>(null);
   const [hasChanges, setHasChanges] = useState(false);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+  const [showChangeConfirm, setShowChangeConfirm] = useState(false);
+  const [pendingValue, setPendingValue] = useState<string | null>(null);
+  const [pendingType, setPendingType] = useState<"year" | "teacher" | null>(null);
   const originalTreeDataRef = useRef<TeacherAssignmentTree | null>(null);
 
   // Load tree data when year and teacher are selected
@@ -60,8 +63,9 @@ export function AssignmentTab() {
     }
   }, [selectedYearId, selectedTeacherId]);
 
-  // Handle data change in tree
+  // Handle data change in tree - update both treeData and hasChanges
   const handleTreeDataChange = (data: TeacherAssignmentTree) => {
+    setTreeData(data);
     setHasChanges(true);
   };
 
@@ -113,7 +117,10 @@ export function AssignmentTab() {
 
   // Handle year/teacher change with unsaved changes check
   const handleYearChange = (value: string) => {
-    if (hasChanges && !confirm("¿Descartar los cambios no guardados?")) {
+    if (hasChanges) {
+      setPendingValue(value);
+      setPendingType("year");
+      setShowChangeConfirm(true);
       return;
     }
     setSelectedYearId(value);
@@ -123,10 +130,28 @@ export function AssignmentTab() {
   };
 
   const handleTeacherChange = (value: string) => {
-    if (hasChanges && !confirm("¿Descartar los cambios no guardados?")) {
+    if (hasChanges) {
+      setPendingValue(value);
+      setPendingType("teacher");
+      setShowChangeConfirm(true);
       return;
     }
     setSelectedTeacherId(value);
+  };
+
+  // Confirm change and proceed
+  const confirmChange = () => {
+    if (pendingType === "year" && pendingValue !== null) {
+      setSelectedYearId(pendingValue);
+      setSelectedTeacherId("");
+      setTreeData(null);
+      setHasChanges(false);
+    } else if (pendingType === "teacher" && pendingValue !== null) {
+      setSelectedTeacherId(pendingValue);
+    }
+    setShowChangeConfirm(false);
+    setPendingValue(null);
+    setPendingType(null);
   };
 
   // Load tree when both selections are made
@@ -222,6 +247,16 @@ export function AssignmentTab() {
         title="¿Descartar cambios?"
         description="¿Está seguro que desea descartar los cambios no guardados? Esta acción no se puede deshacer."
         onConfirm={confirmCancel}
+        confirmLabel="Descartar"
+      />
+
+      <ConfirmDialog
+        open={showChangeConfirm}
+        onOpenChange={setShowChangeConfirm}
+        title="¿Descartar cambios?"
+        description="¿Está seguro que desea descartar los cambios no guardados y cambiar la selección?"
+        onConfirm={confirmChange}
+        confirmLabel="Cambiar"
       />
     </div>
   );

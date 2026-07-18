@@ -17,7 +17,7 @@ export function ReportTab() {
 
   const { options: teacherOptions } = useOptions<TeacherOption>(
     ENDPOINTS.teachers,
-    (item) => ({ label: item.fullName, value: String(item.id) }),
+    (item) => ({ label: item.name, value: String(item.id) }),
     true
   );
 
