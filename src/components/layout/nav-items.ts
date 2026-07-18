@@ -20,6 +20,7 @@ import {
   FileText,
   Wallet,
   FileBarChart,
+  ListChecks,
   type LucideIcon,
 } from "lucide-react";
 
@@ -38,7 +39,7 @@ export const mainNavItems: NavItem[] = [
     url: "/dashboard",
     icon: LayoutDashboard,
   },
-  {
+{
     title: "Académico",
     url: "/academico",
     icon: BookOpen,
@@ -46,6 +47,7 @@ export const mainNavItems: NavItem[] = [
       { title: "Años académicos", url: "/anio-academico", icon: CalendarRange },
       { title: "Tipos de evaluación", url: "/tipos-evaluacion", icon: ClipboardCheck },
       { title: "Períodos de evaluación", url: "/periodos-evaluacion", icon: CalendarCheck },
+      { title: "Criterios de evaluación", url: "/criterios-evaluacion", icon: ListChecks },
       { title: "Niveles", url: "/niveles", icon: Layers },
       { title: "Grados", url: "/grados", icon: BookMarked },
       { title: "Aulas", url: "/aulas", icon: DoorOpen },

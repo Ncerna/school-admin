@@ -200,6 +200,18 @@ export type { Charge, ChargeApiResponse, PaymentMethodEntry, PaymentMethodEntryP
 // Re-export Payment Report types
 export type { PaymentReportRow, PaymentReportFilters, PaymentReportSummary, PaymentReportResponse } from "./payment-report";
 
+// Re-export Evaluation Criteria types
+export type {
+  EvaluationCriterion,
+  EvaluationCriteriaResponse,
+  EvaluationCriteriaPayload,
+  EvaluationCriteriaSummaryItem,
+  AcademicYearOption as EvaluationCriteriaAcademicYearOption,
+  EvaluationPeriodOption,
+  GradeOption as EvaluationCriteriaGradeOption,
+  GradeCourseOption,
+} from "./evaluation-criteria";
+
 // Type aliases for backward compatibility (Spanish names)
 export type { Level as Nivel, Grade as Grado, Classroom as Aula, Course as Curso, Shift as Turno, AcademicYear as AnioAcademico, EvaluationType as TipoEvaluacion, Role as Rol, MenuAccess as MenuAcceso, Teacher as Docente, Student as Estudiante, Guardian as Apoderado, School as Colegio, Publication as Publicacion };
 export type { EvaluationPeriod as PeriodoEvaluacion, EvaluationPeriodPayload as PeriodoEvaluacionPayload } from "./evaluation-period";

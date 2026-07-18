@@ -44,8 +44,8 @@ export interface TeacherAssignmentPayload {
 // Teacher option for selects
 export interface TeacherOption {
   id: number;
-  fullName: string;
-  document: string;
+  name: string;
+  dni: string;
 }
 
 // Academic year option

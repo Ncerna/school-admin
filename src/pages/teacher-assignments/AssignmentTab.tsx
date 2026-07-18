@@ -8,6 +8,7 @@ import { ENDPOINTS } from "@/lib/endpoints";
 import { teacherAssignmentsService } from "@/services/teacher-assignments.service";
 import { ApiError } from "@/types/api";
 import { AssignmentTree } from "./AssignmentTree";
+import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import type { TeacherAssignmentTree, AcademicYearOption, TeacherOption } from "@/types/teacher-assignment";
 
 export function AssignmentTab() {
@@ -18,10 +19,10 @@ export function AssignmentTab() {
     true
   );
 
-  // Use the hook for teachers - map fullName to label
+  
   const { options: teacherOptions } = useOptions<TeacherOption>(
     ENDPOINTS.teachers,
-    (item) => ({ label: item.fullName, value: String(item.id) }),
+    (item) => ({ label: item.name, value: String(item.id) }),
     true
   );
 
@@ -32,6 +33,7 @@ export function AssignmentTab() {
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [hasChanges, setHasChanges] = useState(false);
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const originalTreeDataRef = useRef<TeacherAssignmentTree | null>(null);
 
   // Load tree data when year and teacher are selected
@@ -66,13 +68,17 @@ export function AssignmentTab() {
   // Handle cancel - restore original data
   const handleCancel = () => {
     if (hasChanges) {
-      if (confirm("¿Descartar los cambios no guardados?")) {
-        if (originalTreeDataRef.current) {
-          setTreeData(originalTreeDataRef.current);
-          setHasChanges(false);
-        }
-      }
+      setShowCancelConfirm(true);
     }
+  };
+
+  // Confirm cancel and restore original data
+  const confirmCancel = () => {
+    if (originalTreeDataRef.current) {
+      setTreeData(originalTreeDataRef.current);
+      setHasChanges(false);
+    }
+    setShowCancelConfirm(false);
   };
 
   // Handle save
@@ -144,6 +150,7 @@ export function AssignmentTab() {
               <SelectValue placeholder="Seleccionar año" />
             </SelectTrigger>
             <SelectContent>
+              <SelectItem value="">Todos los años</SelectItem>
               {academicYearOptions.map((option) => (
                 <SelectItem key={option.value} value={option.value}>
                   {option.label}
@@ -160,6 +167,7 @@ export function AssignmentTab() {
               <SelectValue placeholder="Seleccionar docente" />
             </SelectTrigger>
             <SelectContent>
+              <SelectItem value="">Todos los docentes</SelectItem>
               {teacherOptions.map((option) => (
                 <SelectItem key={option.value} value={option.value}>
                   {option.label}
@@ -207,6 +215,14 @@ export function AssignmentTab() {
           </LoadingButton>
         </div>
       )}
+
+      <ConfirmDialog
+        open={showCancelConfirm}
+        onOpenChange={setShowCancelConfirm}
+        title="¿Descartar cambios?"
+        description="¿Está seguro que desea descartar los cambios no guardados? Esta acción no se puede deshacer."
+        onConfirm={confirmCancel}
+      />
     </div>
   );
 }
