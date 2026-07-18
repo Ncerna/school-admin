@@ -5,8 +5,11 @@ import { Button } from "@/components/ui/button";
 import { LoadingButton } from "@/components/common/LoadingButton";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useOptions } from "@/hooks/useOptions";
+import { ENDPOINTS } from "@/lib/endpoints";
 import { evaluationCriteriaService } from "@/services/evaluation-criteria.service";
 import { ApiError } from "@/types/api";
+import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import type { 
   EvaluationCriterion, 
   EvaluationCriteriaResponse,
@@ -17,23 +20,29 @@ import type {
 } from "@/types/evaluation-criteria";
 
 export function DetailTab() {
-  // Filter state
-  const [academicYears, setAcademicYears] = useState<AcademicYearOption[]>([]);
-  const [evaluationPeriods, setEvaluationPeriods] = useState<EvaluationPeriodOption[]>([]);
-  const [grades, setGrades] = useState<GradeOption[]>([]);
-  const [courses, setCourses] = useState<GradeCourseOption[]>([]);
-  
+  // Use useOptions hook for academic years - autoFetch: true to load once on mount
+  const { options: academicYearOptions } = useOptions<AcademicYearOption>(
+    ENDPOINTS.AcademicYears,
+    (item) => ({ label: item.name, value: String(item.id) }),
+    true
+  );
+
   const [selectedYearId, setSelectedYearId] = useState<string>("");
   const [selectedPeriodId, setSelectedPeriodId] = useState<string>("");
   const [selectedGradeId, setSelectedGradeId] = useState<string>("");
   const [selectedCourseId, setSelectedCourseId] = useState<string>("");
+  
+  // Options that need parameters - use service directly
+  const [evaluationPeriods, setEvaluationPeriods] = useState<EvaluationPeriodOption[]>([]);
+  const [grades, setGrades] = useState<GradeOption[]>([]);
+  const [courses, setCourses] = useState<GradeCourseOption[]>([]);
+  const [periodError, setPeriodError] = useState<string | null>(null);
   
   // Criteria state
   const [criteria, setCriteria] = useState<EvaluationCriterion[]>([]);
   const [originalCriteria, setOriginalCriteria] = useState<EvaluationCriterion[]>([]);
   
   // Loading states
-  const [isLoadingFilters, setIsLoadingFilters] = useState(false);
   const [isLoadingCriteria, setIsLoadingCriteria] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   
@@ -46,19 +55,11 @@ export function DetailTab() {
   // Ref to track if we have unsaved changes
   const hasChangesRef = useRef(false);
 
-  // Load academic years on mount
-  useEffect(() => {
-    loadAcademicYears();
-  }, []);
-
-  async function loadAcademicYears() {
-    try {
-      const years = await evaluationCriteriaService.getAcademicYears();
-      setAcademicYears(years);
-    } catch (err) {
-      console.error("Error loading academic years:", err);
-    }
-  }
+  // Dialog states
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+  const [showChangeConfirm, setShowChangeConfirm] = useState(false);
+  const [pendingValue, setPendingValue] = useState<string | null>(null);
+  const [pendingType, setPendingType] = useState<"year" | "period" | "grade" | "course" | null>(null);
 
   // Load evaluation periods when year is selected
   useEffect(() => {
@@ -71,12 +72,13 @@ export function DetailTab() {
   }, [selectedYearId]);
 
   async function loadEvaluationPeriods(yearId: number) {
+    setPeriodError(null);
     try {
       const periods = await evaluationCriteriaService.getEvaluationPeriods(yearId);
       setEvaluationPeriods(periods);
     } catch (err) {
       if (err instanceof ApiError) {
-        setError(err.message);
+        setPeriodError(err.message);
       }
       setEvaluationPeriods([]);
     }
@@ -85,6 +87,7 @@ export function DetailTab() {
   // Load grades when year is selected
   useEffect(() => {
     if (selectedYearId) {
+      setPeriodError(null);
       loadGrades(Number(selectedYearId));
     } else {
       setGrades([]);
@@ -97,7 +100,9 @@ export function DetailTab() {
       const gradeList = await evaluationCriteriaService.getGrades(yearId);
       setGrades(gradeList);
     } catch (err) {
-      console.error("Error loading grades:", err);
+      if (err instanceof ApiError) {
+        setPeriodError(err.message);
+      }
       setGrades([]);
     }
   }
@@ -165,7 +170,10 @@ export function DetailTab() {
 
   // Handle filter changes with unsaved changes check
   const handleYearChange = (value: string) => {
-    if (hasChangesRef.current && !confirm("¿Descartar los cambios no guardados?")) {
+    if (hasChangesRef.current) {
+      setPendingValue(value);
+      setPendingType("year");
+      setShowChangeConfirm(true);
       return;
     }
     setSelectedYearId(value);
@@ -178,7 +186,10 @@ export function DetailTab() {
   };
 
   const handlePeriodChange = (value: string) => {
-    if (hasChangesRef.current && !confirm("¿Descartar los cambios no guardados?")) {
+    if (hasChangesRef.current) {
+      setPendingValue(value);
+      setPendingType("period");
+      setShowChangeConfirm(true);
       return;
     }
     setSelectedPeriodId(value);
@@ -190,7 +201,10 @@ export function DetailTab() {
   };
 
   const handleGradeChange = (value: string) => {
-    if (hasChangesRef.current && !confirm("¿Descartar los cambios no guardados?")) {
+    if (hasChangesRef.current) {
+      setPendingValue(value);
+      setPendingType("grade");
+      setShowChangeConfirm(true);
       return;
     }
     setSelectedGradeId(value);
@@ -201,10 +215,104 @@ export function DetailTab() {
   };
 
   const handleCourseChange = (value: string) => {
-    if (hasChangesRef.current && !confirm("¿Descartar los cambios no guardados?")) {
+    if (hasChangesRef.current) {
+      setPendingValue(value);
+      setPendingType("course");
+      setShowChangeConfirm(true);
       return;
     }
     setSelectedCourseId(value);
+  };
+
+  // Confirm change and proceed
+  const confirmChange = () => {
+    if (pendingType === "year" && pendingValue !== null) {
+      setSelectedYearId(pendingValue);
+      setSelectedPeriodId("");
+      setSelectedGradeId("");
+      setSelectedCourseId("");
+      setCriteria([]);
+      setOriginalCriteria([]);
+      hasChangesRef.current = false;
+    } else if (pendingType === "period" && pendingValue !== null) {
+      setSelectedPeriodId(pendingValue);
+      setSelectedGradeId("");
+      setSelectedCourseId("");
+      setCriteria([]);
+      setOriginalCriteria([]);
+      hasChangesRef.current = false;
+    } else if (pendingType === "grade" && pendingValue !== null) {
+      setSelectedGradeId(pendingValue);
+      setSelectedCourseId("");
+      setCriteria([]);
+      setOriginalCriteria([]);
+      hasChangesRef.current = false;
+    } else if (pendingType === "course" && pendingValue !== null) {
+      setSelectedCourseId(pendingValue);
+    }
+    setShowChangeConfirm(false);
+    setPendingValue(null);
+    setPendingType(null);
+  };
+
+  // Handle cancel
+  const handleCancel = () => {
+    if (hasChangesRef.current) {
+      setShowCancelConfirm(true);
+    }
+  };
+
+  // Confirm cancel and restore original data
+  const confirmCancel = () => {
+    setCriteria(originalCriteria);
+    hasChangesRef.current = false;
+    setShowCancelConfirm(false);
+  };
+
+  // Handle save
+  const handleSave = async () => {
+    setValidationError(null);
+    
+    // Validate
+    if (criteria.length === 0) {
+      setValidationError("Debe agregar al menos un criterio de evaluación.");
+      return;
+    }
+    
+    if (hasDuplicateNames(criteria)) {
+      setValidationError("No pueden existir criterios con el mismo nombre.");
+      return;
+    }
+    
+    if (hasInvalidData(criteria)) {
+      setValidationError("Todos los criterios deben tener nombre y puntaje máximo mayor a 0.");
+      return;
+    }
+
+    setIsSaving(true);
+    setError(null);
+    
+    try {
+      const payload = {
+        evaluationPeriodId: Number(selectedPeriodId),
+        gradeCourseId: Number(selectedCourseId),
+        criteria: criteria.map((c, i) => ({
+          ...c,
+          order: i + 1,
+        })),
+      };
+      
+      const response = await evaluationCriteriaService.saveCriteria(payload);
+      setCriteria(response.criteria);
+      setOriginalCriteria(response.criteria);
+      hasChangesRef.current = false;
+    } catch (err) {
+      if (err instanceof ApiError) {
+        setError(err.message);
+      }
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   // Add a new criterion
@@ -262,62 +370,6 @@ export function DetailTab() {
     hasChangesRef.current = true;
   };
 
-  // Handle cancel
-  const handleCancel = () => {
-    if (hasChangesRef.current) {
-      if (confirm("¿Descartar los cambios no guardados?")) {
-        setCriteria(originalCriteria);
-        hasChangesRef.current = false;
-      }
-    }
-  };
-
-  // Handle save
-  const handleSave = async () => {
-    setValidationError(null);
-    
-    // Validate
-    if (criteria.length === 0) {
-      setValidationError("Debe agregar al menos un criterio de evaluación.");
-      return;
-    }
-    
-    if (hasDuplicateNames(criteria)) {
-      setValidationError("No pueden existir criterios con el mismo nombre.");
-      return;
-    }
-    
-    if (hasInvalidData(criteria)) {
-      setValidationError("Todos los criterios deben tener nombre y puntaje máximo mayor a 0.");
-      return;
-    }
-
-    setIsSaving(true);
-    setError(null);
-    
-    try {
-      const payload = {
-        evaluationPeriodId: Number(selectedPeriodId),
-        gradeCourseId: Number(selectedCourseId),
-        criteria: criteria.map((c, i) => ({
-          ...c,
-          order: i + 1,
-        })),
-      };
-      
-      const response = await evaluationCriteriaService.saveCriteria(payload);
-      setCriteria(response.criteria);
-      setOriginalCriteria(response.criteria);
-      hasChangesRef.current = false;
-    } catch (err) {
-      if (err instanceof ApiError) {
-        setError(err.message);
-      }
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
   // Check if all 4 filters are selected
   const allFiltersSelected = selectedYearId && selectedPeriodId && selectedGradeId && selectedCourseId;
 
@@ -332,9 +384,10 @@ export function DetailTab() {
               <SelectValue placeholder="Seleccionar año" />
             </SelectTrigger>
             <SelectContent>
-              {academicYears.map((year) => (
-                <SelectItem key={year.id} value={String(year.id)}>
-                  {year.name}
+              <SelectItem value="">Todos los años</SelectItem>
+              {academicYearOptions.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -352,9 +405,10 @@ export function DetailTab() {
               <SelectValue placeholder="Seleccionar período" />
             </SelectTrigger>
             <SelectContent>
-              {evaluationPeriods.map((period) => (
-                <SelectItem key={period.id} value={String(period.id)}>
-                  {period.name}
+              <SelectItem value="">Todos los períodos</SelectItem>
+              {evaluationPeriods.map((option) => (
+                <SelectItem key={option.id} value={String(option.id)}>
+                  {option.name}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -372,9 +426,10 @@ export function DetailTab() {
               <SelectValue placeholder="Seleccionar grado" />
             </SelectTrigger>
             <SelectContent>
-              {grades.map((grade) => (
-                <SelectItem key={grade.id} value={String(grade.id)}>
-                  {grade.name}
+              <SelectItem value="">Todos los grados</SelectItem>
+              {grades.map((option) => (
+                <SelectItem key={option.id} value={String(option.id)}>
+                  {option.name}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -392,9 +447,10 @@ export function DetailTab() {
               <SelectValue placeholder="Seleccionar curso" />
             </SelectTrigger>
             <SelectContent>
-              {courses.map((course) => (
-                <SelectItem key={course.gradeCourseId} value={String(course.gradeCourseId)}>
-                  {course.courseName}
+              <SelectItem value="">Todos los cursos</SelectItem>
+              {courses.map((option) => (
+                <SelectItem key={option.gradeCourseId} value={String(option.gradeCourseId)}>
+                  {option.courseName}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -403,6 +459,12 @@ export function DetailTab() {
       </div>
 
       {/* Error messages */}
+      {periodError && (
+        <div className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+          {periodError}
+        </div>
+      )}
+
       {error && (
         <div className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
           {error}
@@ -524,6 +586,24 @@ export function DetailTab() {
           </div>
         </div>
       )}
+
+      <ConfirmDialog
+        open={showCancelConfirm}
+        onOpenChange={setShowCancelConfirm}
+        title="¿Descartar cambios?"
+        description="¿Está seguro que desea descartar los cambios no guardados? Esta acción no se puede deshacer."
+        onConfirm={confirmCancel}
+        confirmLabel="Descartar"
+      />
+
+      <ConfirmDialog
+        open={showChangeConfirm}
+        onOpenChange={setShowChangeConfirm}
+        title="¿Descartar cambios?"
+        description="¿Está seguro que desea descartar los cambios no guardados y cambiar la selección?"
+        onConfirm={confirmChange}
+        confirmLabel="Cambiar"
+      />
     </div>
   );
 }

@@ -17,15 +17,15 @@ export const evaluationCriteriaService = {
 
   // Get evaluation periods for an academic year
   getEvaluationPeriods: (academicYearId: number) =>
-    apiClient.get<EvaluationPeriodOption[]>(`${ENDPOINTS.evaluationPeriods}`, { academicYearId }),
+    apiClient.get<EvaluationPeriodOption[]>(`${ENDPOINTS.evaluationPeriods}/options`, { academicYearId }),
 
   // Get grades for an academic year
   getGrades: (academicYearId: number) =>
-    apiClient.get<GradeOption[]>(`${ENDPOINTS.grades}`, { academicYearId }),
+    apiClient.get<GradeOption[]>(`${ENDPOINTS.grades}/options`, { academicYearId }),
 
   // Get courses for a grade in an academic year
   getGradeCourses: (academicYearId: number, gradeId: number) =>
-    apiClient.get<GradeCourseOption[]>(`${ENDPOINTS.gradeCourses}`, { academicYearId, gradeId }),
+    apiClient.get<GradeCourseOption[]>(`${ENDPOINTS.gradeCourses}/options`, { academicYearId, gradeId }),
 
   // Get criteria for a specific combination
   getCriteria: (evaluationPeriodId: number, gradeCourseId: number) =>

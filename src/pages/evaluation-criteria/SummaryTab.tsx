@@ -3,32 +3,26 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { useOptions } from "@/hooks/useOptions";
+import { ENDPOINTS } from "@/lib/endpoints";
 import { evaluationCriteriaService } from "@/services/evaluation-criteria.service";
 import { ApiError } from "@/types/api";
 import type { EvaluationCriteriaSummaryItem, AcademicYearOption, EvaluationPeriodOption } from "@/types/evaluation-criteria";
 
 export function SummaryTab() {
-  const [academicYears, setAcademicYears] = useState<AcademicYearOption[]>([]);
-  const [evaluationPeriods, setEvaluationPeriods] = useState<EvaluationPeriodOption[]>([]);
+  // Use useOptions hook for academic years - autoFetch: true to load once on mount
+  const { options: academicYearOptions } = useOptions<AcademicYearOption>(
+    ENDPOINTS.AcademicYears,
+    (item) => ({ label: item.name, value: String(item.id) }),
+    true
+  );
+
   const [selectedYearId, setSelectedYearId] = useState<string>("");
   const [selectedPeriodId, setSelectedPeriodId] = useState<string>("");
+  const [evaluationPeriods, setEvaluationPeriods] = useState<EvaluationPeriodOption[]>([]);
   const [summaryData, setSummaryData] = useState<EvaluationCriteriaSummaryItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [periodError, setPeriodError] = useState<string | null>(null);
-
-  // Load academic years on mount
-  useEffect(() => {
-    loadAcademicYears();
-  }, []);
-
-  async function loadAcademicYears() {
-    try {
-      const years = await evaluationCriteriaService.getAcademicYears();
-      setAcademicYears(years);
-    } catch (err) {
-      console.error("Error loading academic years:", err);
-    }
-  }
 
   // Load evaluation periods when year is selected
   useEffect(() => {
@@ -37,7 +31,6 @@ export function SummaryTab() {
     } else {
       setEvaluationPeriods([]);
       setSelectedPeriodId("");
-      setSummaryData([]);
     }
   }, [selectedYearId]);
 
@@ -96,9 +89,9 @@ export function SummaryTab() {
               <SelectValue placeholder="Seleccionar año" />
             </SelectTrigger>
             <SelectContent>
-              {academicYears.map((year) => (
-                <SelectItem key={year.id} value={String(year.id)}>
-                  {year.name}
+              {academicYearOptions.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -116,9 +109,9 @@ export function SummaryTab() {
               <SelectValue placeholder="Seleccionar período" />
             </SelectTrigger>
             <SelectContent>
-              {evaluationPeriods.map((period) => (
-                <SelectItem key={period.id} value={String(period.id)}>
-                  {period.name}
+              {evaluationPeriods.map((option) => (
+                <SelectItem key={option.id} value={String(option.id)}>
+                  {option.name}
                 </SelectItem>
               ))}
             </SelectContent>
