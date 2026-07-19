@@ -24,8 +24,8 @@ export function useOptions<T extends { id: string | number }>(
     try {
       // apiClient.get already extracts the `data` property from the response
       const data = await apiClient.get<T[]>(`${endpoint}/options`);
-      // Ensure all values are strings
-      setOptions(data.map((item) => ({
+      // Ensure all values are strings - protect against undefined data
+      setOptions((data ?? []).map((item) => ({
         ...mapToOption(item),
         value: String(mapToOption(item).value),
       })));

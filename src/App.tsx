@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/context/AuthContext";
+import { ToastProvider } from "@/components/ui/toast";
 import { ProtectedRoute } from "@/components/common/ProtectedRoute";
 import { PublicOnlyRoute } from "@/components/common/PublicOnlyRoute";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
@@ -52,8 +53,9 @@ function PageLoader() {
 export default function App() {
   return (
     <BrowserRouter>
-      <AuthProvider>
-        <Routes>
+      <ToastProvider>
+        <AuthProvider>
+          <Routes>
           {/* Rutas públicas: portal institucional y autenticación (RF-HU-008, RF-HU-007, RF-HU-004) */}
           <Route element={<PublicOnlyRoute />}>
             <Route path="/" element={
@@ -247,6 +249,7 @@ export default function App() {
           </Route>
         </Routes>
       </AuthProvider>
+      </ToastProvider>
     </BrowserRouter>
   );
 }

@@ -1,8 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
+import { Check, AlertCircle } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { useOptions } from "@/hooks/useOptions";
 import { ENDPOINTS } from "@/lib/endpoints";
 import { evaluationCriteriaService } from "@/services/evaluation-criteria.service";
@@ -167,13 +166,13 @@ export function SummaryTab() {
                     <TableCell>
                       {item.criteriaCount > 0 ? (
                         <div className="flex items-center gap-2">
-                          <Badge variant="success" className="h-2 w-2 rounded-full p-0" />
-                          <span>✓ {item.criteriaCount} criterios</span>
+                          <Check className="h-4 w-4 text-emerald-600" />
+                          <span>{item.criteriaCount} criterios configurados</span>
                         </div>
                       ) : (
                         <div className="flex items-center gap-2">
-                          <Badge variant="secondary" className="h-2 w-2 rounded-full p-0" />
-                          <span className="text-muted-foreground">⚠ Sin configurar</span>
+                          <AlertCircle className="h-4 w-4 text-muted-foreground" />
+                          <span className="text-muted-foreground">Sin configurar</span>
                         </div>
                       )}
                     </TableCell>

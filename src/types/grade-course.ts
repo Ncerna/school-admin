@@ -2,6 +2,8 @@
 import type { Status } from "./index";
 
 // Grade Course type - represents a course assigned to a grade
+// Based on API response: GET /api/grade-courses?yearId=X&gradeId=Y
+// Note: API returns couseName (typo in backend), secion (typo in backend), fecha (typo in backend), estado (typo in backend)
 export interface GradeCourse {
   id: string;
   yearId: number;
@@ -13,6 +15,20 @@ export interface GradeCourse {
   date: string;
   coursesCount: number;
   status: Status;
+  // Course name for display in report (from API: couseName)
+  courseName?: string;
+}
+
+// Response from GET /api/grade-courses?yearId=X&gradeId=Y
+// This is the actual API response structure
+export interface GradeCourseListItem {
+  id: number;
+  couseName: string;
+  gradeName: string;
+  levelName: string;
+  secion: string;
+  fecha: string;
+  estado: string;
 }
 
 // Form state for editing - API returns { yearId, gradeId, courseIds: [...] }

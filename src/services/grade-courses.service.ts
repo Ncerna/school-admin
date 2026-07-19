@@ -73,4 +73,8 @@ export const gradeCoursesService = {
   // Get courses options
   getCourses: () =>
     apiClient.get<CourseOption[]>(`${ENDPOINTS.courses}/options`),
+
+  // Get courses assigned to a grade with their names
+  getCoursesByYearAndGrade: (yearId: number, gradeId: number) =>
+    apiClient.get<CourseOption[]>(`${base}/courses`, { yearId, gradeId }),
 };
