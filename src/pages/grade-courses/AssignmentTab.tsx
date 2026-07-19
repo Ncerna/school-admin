@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Save, X, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { LoadingButton } from "@/components/common/LoadingButton";
@@ -7,10 +7,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Checkbox } from "@/components/ui/checkbox";
 import { useOptions } from "@/hooks/useOptions";
 import { ENDPOINTS } from "@/lib/endpoints";
+import { Label } from "@/components/ui/label";
 import { gradeCoursesService } from "@/services/grade-courses.service";
 import { ApiError } from "@/types/api";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
-import type { AcademicYearOption, GradeOption, CourseOption, GradeCourse } from "@/types/grade-course";
+import { DependencyConfirmDialog } from "@/components/shared/DependencyConfirmDialog";
+import type { AcademicYearOption, GradeOption, CourseOption, AffectedCourse } from "@/types/grade-course";
 
 export function AssignmentTab() {
   // Use the centralized useOptions hook for academic years
@@ -43,6 +45,8 @@ export function AssignmentTab() {
   const [error, setError] = useState<string | null>(null);
   const [showAssignDialog, setShowAssignDialog] = useState(false);
   const [showChangeConfirm, setShowChangeConfirm] = useState(false);
+  const [showDependencyConfirm, setShowDependencyConfirm] = useState(false);
+  const [affectedCourses, setAffectedCourses] = useState<AffectedCourse[]>([]);
   const [pendingValue, setPendingValue] = useState<string | null>(null);
   const [pendingType, setPendingType] = useState<"year" | "grade" | null>(null);
 
@@ -121,19 +125,30 @@ export function AssignmentTab() {
     setPendingType(null);
   };
 
-  // Handle save
-  const handleSave = async () => {
+  // Handle save - used for both inline save and dialog save
+  const handleSaveInternal = async (closeDialogOnSuccess = false) => {
     if (!selectedYearId || !selectedGradeId) return;
 
     setIsSaving(true);
     setError(null);
     try {
-      await gradeCoursesService.updateByYearAndGrade(
+      const response = await gradeCoursesService.updateByYearAndGrade(
         Number(selectedYearId),
         Number(selectedGradeId),
-        assignedCourseIds
+        assignedCourseIds,
+        false
       );
-      setOriginalCourseIds(assignedCourseIds);
+
+      if (response.success) {
+        setOriginalCourseIds(assignedCourseIds);
+        if (closeDialogOnSuccess) {
+          setShowAssignDialog(false);
+        }
+      } else if (response.data?.requires_confirmation && response.data?.affected_courses) {
+        // Show dependency confirmation dialog
+        setAffectedCourses(response.data.affected_courses);
+        setShowDependencyConfirm(true);
+      }
     } catch (err) {
       if (err instanceof ApiError) {
         setError(err.message);
@@ -175,22 +190,37 @@ export function AssignmentTab() {
 
   // Handle save from dialog
   const handleDialogSave = async () => {
+    await handleSaveInternal(true);
+  };
+
+  // Handle confirm dependency removal
+  const handleConfirmDependencyRemoval = async () => {
     if (!selectedYearId || !selectedGradeId) return;
 
     setIsSaving(true);
     setError(null);
     try {
-      await gradeCoursesService.create({
-        yearId: Number(selectedYearId),
-        gradeId: Number(selectedGradeId),
-        courseIds: assignedCourseIds,
-      });
-      setOriginalCourseIds(assignedCourseIds);
-      setShowAssignDialog(false);
+      const response = await gradeCoursesService.updateByYearAndGrade(
+        Number(selectedYearId),
+        Number(selectedGradeId),
+        assignedCourseIds,
+        true
+      );
+
+      if (response.success) {
+        setOriginalCourseIds(assignedCourseIds);
+        setShowDependencyConfirm(false);
+        setShowAssignDialog(false);
+      } else {
+        // If second request fails, close dialog and show error
+        setShowDependencyConfirm(false);
+        setError(response.message ?? "Error al guardar los cambios.");
+      }
     } catch (err) {
       if (err instanceof ApiError) {
         setError(err.message);
       }
+      setShowDependencyConfirm(false);
     } finally {
       setIsSaving(false);
     }
@@ -204,9 +234,9 @@ export function AssignmentTab() {
         </div>
       )}
 
-      <div className="flex items-center gap-4">
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-medium">Año Académico:</span>
+      <div className="flex items-end gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="academic-year">Año Académico:</Label>
           <Select value={selectedYearId} onValueChange={handleYearChange} disabled={isLoadingYears}>
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Seleccionar año" />
@@ -222,8 +252,8 @@ export function AssignmentTab() {
           </Select>
         </div>
 
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-medium">Grado:</span>
+        <div className="space-y-2">
+          <Label htmlFor="grade">Grado:</Label>
           <Select value={selectedGradeId} onValueChange={handleGradeChange} disabled={!selectedYearId || isLoadingGrades}>
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Seleccionar grado" />
@@ -359,6 +389,14 @@ export function AssignmentTab() {
         description="¿Está seguro que desea descartar los cambios no guardados y cambiar la selección?"
         onConfirm={confirmChange}
         confirmLabel="Cambiar"
+      />
+
+      <DependencyConfirmDialog
+        open={showDependencyConfirm}
+        onOpenChange={setShowDependencyConfirm}
+        affectedCourses={affectedCourses}
+        onConfirm={handleConfirmDependencyRemoval}
+        isLoading={isSaving}
       />
     </div>
   );

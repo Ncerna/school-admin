@@ -37,6 +37,7 @@ const PaymentSearchPage = lazy(() => import("@/pages/payments/PaymentSearchPage"
 const PaymentsReportPage = lazy(() => import("@/pages/payments/PaymentsReportPage"));
 const TeacherAssignmentPage = lazy(() => import("@/pages/teacher-assignments/TeacherAssignmentPage"));
 const EvaluationCriteriaPage = lazy(() => import("@/pages/evaluation-criteria/EvaluationCriteriaPage"));
+const GuardiansPage = lazy(() => import("@/pages/guardians/GuardiansPage"));
 
 // Loading fallback component
 function PageLoader() {
@@ -243,6 +244,13 @@ export default function App() {
               <Route path="/criterios-evaluacion" element={
                 <Suspense fallback={<PageLoader />}>
                   <EvaluationCriteriaPage />
+                </Suspense>
+              } />
+
+              {/* Guardians (RF-HU-026) */}
+              <Route path="/apoderados" element={
+                <Suspense fallback={<PageLoader />}>
+                  <GuardiansPage />
                 </Suspense>
               } />
             </Route>

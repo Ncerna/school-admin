@@ -1,6 +1,9 @@
 import { Badge } from "@/components/ui/badge";
-import type { Status } from "@/types";
+import type { Status, PublicationStatus } from "@/types";
 
-export function StatusBadge({ estado }: { estado: Status }) {
-  return <Badge variant={estado === "Activo" ? "success" : "secondary"}>{estado}</Badge>;
+type BadgeStatus = Status | PublicationStatus;
+
+export function StatusBadge({ estado }: { estado: BadgeStatus }) {
+  const variant = estado === "Activo" || estado === "Aprobado" ? "success" : "secondary";
+  return <Badge variant={variant}>{estado}</Badge>;
 }

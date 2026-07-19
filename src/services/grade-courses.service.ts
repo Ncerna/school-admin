@@ -2,7 +2,7 @@ import { apiClient } from "@/lib/api-client";
 import { createCrudService } from "@/lib/crud-service";
 import { ENDPOINTS } from "@/lib/endpoints";
 import { ApiError } from "@/types/api";
-import type { GradeCourse, GradeCoursePayload, GradeCourseFormState, AcademicYearOption, GradeOption, CourseOption } from "@/types/grade-course";
+import type { GradeCourse, GradeCoursePayload, GradeCourseFormState, AcademicYearOption, GradeOption, CourseOption, UpdateConfirmationResponse, AffectedCourse, ConflictErrorResponse } from "@/types/grade-course";
 
 const base = ENDPOINTS.gradeCourses;
 
@@ -30,9 +30,34 @@ export const gradeCoursesService = {
   getByYearAndGrade: (yearId: number, gradeId: number) =>
     apiClient.get<GradeCourseFormState>(`${base}/${yearId}/${gradeId}`),
 
-  // Update by year and grade - for editing
-  updateByYearAndGrade: (yearId: number, gradeId: number, courseIds: number[]) =>
-    apiClient.put<GradeCourse>(`${base}/${yearId}/${gradeId}`, { yearId, gradeId, courseIds }),
+// Update by year and grade - for editing
+  // Returns full response to handle requires_confirmation
+  // Note: On 409 conflict, the response has data in `errors` field, not `data`
+  updateByYearAndGrade: async (yearId: number, gradeId: number, courseIds: number[], force: boolean = false) => {
+    const response = await apiClient.requestWithData<UpdateConfirmationResponse>(
+      `${base}/${yearId}/${gradeId}`,
+      { method: "PUT", body: { yearId, gradeId, courseIds, force } }
+    );
+
+    // Handle 409 conflict - data is in errors field (not in the standard format)
+    // The backend returns: { success: false, message: "...", data: null, errors: { success: false, requires_confirmation: true, message: "...", affected_courses: [...] } }
+    if (!response.success && response.errors && (response.errors as any).affected_courses) {
+      const errorData = response.errors as unknown as ConflictErrorResponse;
+      return {
+        success: false,
+        message: response.message,
+        data: {
+          success: false,
+          requires_confirmation: errorData.requires_confirmation,
+          message: errorData.message,
+          affected_courses: errorData.affected_courses,
+        },
+        errors: response.errors,
+      };
+    }
+
+    return response;
+  },
 
   // Delete by year and grade - with confirmation support
   // Returns { requires_confirmation: true, courses_count: N } when confirmation is needed

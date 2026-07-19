@@ -163,7 +163,7 @@ async function requestWithData<T>(path: string, options: RequestOptions = {}): P
   success: boolean;
   message: string;
   data: T | null;
-  errors: Record<string, string[]> | null;
+  errors: unknown;
 }> {
   const { method = "GET", body, params, requiresAuth = true, isRetry = false, signal } = options;
 

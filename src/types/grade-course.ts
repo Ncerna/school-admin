@@ -60,3 +60,27 @@ export interface CourseOption {
   id: number;
   name: string;
 }
+
+// Affected course for confirmation dialog
+export interface AffectedCourse {
+  courseId: number;
+  courseName: string;
+  criteriaCount: number;
+  teacherAssignmentsCount: number;
+}
+
+// Response from PUT when confirmation is required (data field in transformed response)
+export interface UpdateConfirmationResponse {
+  success: boolean;
+  requires_confirmation: boolean;
+  message: string;
+  affected_courses: AffectedCourse[];
+}
+
+// Error response structure for 409 conflict (nested in errors field)
+export interface ConflictErrorResponse {
+  success: boolean;
+  requires_confirmation: boolean;
+  message: string;
+  affected_courses: AffectedCourse[];
+}

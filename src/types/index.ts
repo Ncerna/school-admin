@@ -114,11 +114,13 @@ export type Gender = "male" | "female";
 export type RelationshipType = "Father" | "Mother" | "Tutor" | "Grandparent" | "Other";
 
 export interface Guardian {
+  id: string;
   names: string;
   last_name: string;
   dni: string;
   phone: string;
   relationshipType: RelationshipType | "";
+  status?: Status;
 }
 
 export interface Student {

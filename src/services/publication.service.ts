@@ -1,10 +1,11 @@
 import type { Publication, PublicationPayload } from "@/types/publication";
 import { apiClient } from "@/lib/api-client";
 import { ENDPOINTS } from "@/lib/endpoints";
+import type { PaginatedData, ListParams } from "@/types/api";
 
 class PublicationService {
-  async getAll(params?: { page?: number; search?: string; sortBy?: string; sortDir?: string }) {
-    const response = await apiClient.get<{ data: Publication[]; pagination?: { page: number; limit: number; total: number } }>(
+  async list(params?: ListParams) {
+    const response = await apiClient.get<PaginatedData<Publication>>(
       ENDPOINTS.publications,
       { params }
     );
@@ -67,8 +68,9 @@ class PublicationService {
     return response;
   }
 
-  async remove(id: string) {
+  async remove(id: string): Promise<null> {
     await apiClient.delete(`${ENDPOINTS.publications}/${id}`);
+    return null;
   }
 
   async approve(id: string) {
