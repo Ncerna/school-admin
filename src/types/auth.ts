@@ -83,13 +83,8 @@ export type ActivationStatus = "PENDING_ACTIVATION" | "ACTIVE" | "INACTIVE";
 
 export interface AccountActivationStatus {
   id: string;
-  nombres: string;
-  apellidos: string;
-  correo: string;
-  usuario: string;
-  rol: string;
-  estadoActivacion: ActivationStatus;
-  fechaEnvio?: string;
-  fechaActivacion?: string;
-  verificationCodeExpiresAt?: string; // ISO date-time
+  username: string;
+  email: string;
+  status: ActivationStatus;
+  role: string;
 }

@@ -8,6 +8,7 @@ import { LoadingButton } from "@/components/common/LoadingButton";
 import { Button } from "@/components/ui/button";
 import { schoolService } from "@/services/school.service";
 import { ApiError } from "@/types/api";
+import { useToast } from "@/components/ui/toast";
 import type { School, SchoolPayload } from "@/types";
 
 const emptySchool: SchoolPayload = {
@@ -25,6 +26,7 @@ const emptySchool: SchoolPayload = {
 };
 
 export default function SchoolPage() {
+  const { showToast } = useToast();
   const [values, setValues] = useState<School | SchoolPayload>(emptySchool);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [bannerPreview, setBannerPreview] = useState<string | null>(null);
@@ -32,7 +34,6 @@ export default function SchoolPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [errors, setErrors] = useState<Record<string, string[]> | null>(null);
   const [generalError, setGeneralError] = useState<string | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   const isFirstRender = useRef(true);
 
@@ -92,11 +93,10 @@ export default function SchoolPage() {
     setBannerPreview(null);
   }
 
-  async function handleSubmit(e: FormEvent) {
+async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setErrors(null);
     setGeneralError(null);
-    setSuccessMessage(null);
     setIsSaving(true);
     try {
       const payload: SchoolPayload = "id" in values ? values : values;
@@ -105,7 +105,7 @@ export default function SchoolPage() {
       } else {
         await schoolService.create(payload);
       }
-      setSuccessMessage("Información guardada correctamente.");
+      showToast("Información guardada correctamente.", "success");
     } catch (err) {
       if (err instanceof ApiError) {
         setErrors(err.errors || {});
@@ -120,18 +120,12 @@ export default function SchoolPage() {
     return errors?.[name]?.[0];
   }
 
-  return (
+return (
     <div>
       <PageHeader
         title="Configuración del Colegio"
         description="Registra o actualiza la información institucional del colegio."
       />
-
-      {successMessage && (
-        <div className="mb-4 rounded-md border border-green-300 bg-green-100 px-3 py-2 text-sm text-green-800">
-          {successMessage}
-        </div>
-      )}
 
       {generalError && (
         <div className="mb-4 rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">

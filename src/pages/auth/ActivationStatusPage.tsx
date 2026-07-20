@@ -9,12 +9,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ApiCrudPage } from "@/components/shared/ApiCrudPage";
+import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { activationStatusService } from "@/services/activation-status.service";
 import { authService } from "@/services/auth.service";
 import { ApiError } from "@/types/api";
+import { useToast } from "@/components/ui/toast";
 import type { AccountActivationStatus } from "@/types/auth";
 import type { ColumnDef } from "@/types";
-import { RefreshCw, UserCheck } from "lucide-react";
+import { RefreshCw, UserCheck, Search } from "lucide-react";
 
 function isCodeExpired(expiresAt?: string): boolean {
   if (!expiresAt) return false;
@@ -23,42 +25,29 @@ function isCodeExpired(expiresAt?: string): boolean {
 
 const columns: ColumnDef<AccountActivationStatus>[] = [
   {
-    header: "Nombre completo",
-    accessor: "nombres",
-    render: (item) => `${item.nombres} ${item.apellidos}`,
+    header: "Usuario",
+    accessor: "username",
     sortable: true,
   },
-  { header: "Usuario", accessor: "usuario", sortable: true },
-  { header: "Rol", accessor: "rol", sortable: true },
+  { header: "Correo", accessor: "email", sortable: true },
+  { header: "Rol", accessor: "role", sortable: true },
   {
     header: "Estado",
-    accessor: "estadoActivacion",
+    accessor: "status",
     render: (item) => {
       const variant =
-        item.estadoActivacion === "ACTIVE"
+        item.status === "ACTIVE"
           ? "success"
-          : item.estadoActivacion === "INACTIVE"
+          : item.status === "INACTIVE"
           ? "destructive"
           : "secondary";
       const label =
-        item.estadoActivacion === "ACTIVE"
+        item.status === "ACTIVE"
           ? "Activo"
-          : item.estadoActivacion === "INACTIVE"
+          : item.status === "INACTIVE"
           ? "Inactivo"
           : "Pendiente";
       return <Badge variant={variant}>{label}</Badge>;
-    },
-  },
-  {
-    header: "Código vencido",
-    accessor: "verificationCodeExpiresAt",
-    render: (item) => {
-      if (item.estadoActivacion !== "PENDING_ACTIVATION") return "—";
-      return isCodeExpired(item.verificationCodeExpiresAt) ? (
-        <Badge variant="destructive">Vencido</Badge>
-      ) : (
-        <Badge variant="outline">Válido</Badge>
-      );
     },
   },
 ];
@@ -80,7 +69,7 @@ function ActivationFilters({
   setPage: (page: number) => void;
 }) {
   return (
-    <div className="mb-4 flex items-center gap-2">
+    <div className="mb-4 flex items-center justify-end gap-2">
       <input
         type="text"
         placeholder={searchPlaceholder}
@@ -88,6 +77,9 @@ function ActivationFilters({
         onChange={(e) => setSearch(e.target.value)}
         className="flex-1 px-3 py-2 border rounded-md"
       />
+      <Button variant="outline" size="icon" aria-label="Buscar" onClick={refetch}>
+        <Search className="h-4 w-4" />
+      </Button>
       <Select
         value="all"
         onValueChange={(value) => setExtraParams({ rol: value === "all" ? undefined : value })}
@@ -122,14 +114,13 @@ function ActivationFilters({
 }
 
 export default function ActivationStatusPage() {
+  const { showToast } = useToast();
   const [selectedUser, setSelectedUser] = useState<AccountActivationStatus | null>(null);
   const [actionType, setActionType] = useState<"resend" | "manual" | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
 
   function getAvailableActions(item: AccountActivationStatus) {
-    if (item.estadoActivacion !== "PENDING_ACTIVATION") return null;
-
-    const expired = isCodeExpired(item.verificationCodeExpiresAt);
+    if (item.status !== "PENDING_ACTIVATION") return null;
 
     return (
       <div className="flex gap-2">
@@ -140,23 +131,23 @@ export default function ActivationStatusPage() {
             setSelectedUser(item);
             setActionType("resend");
           }}
+          disabled={isProcessing}
         >
           <RefreshCw className="h-3 w-3 mr-1" />
           Reenviar credenciales
         </Button>
-        {expired && (
-          <Button
-            size="sm"
-            variant="default"
-            onClick={() => {
-              setSelectedUser(item);
-              setActionType("manual");
-            }}
-          >
+        <Button
+          size="sm"
+          variant="default"
+          onClick={() => {
+            setSelectedUser(item);
+            setActionType("manual");
+          }}
+          disabled={isProcessing}
+        >
           <UserCheck className="h-3 w-3 mr-1" />
           Activar manualmente
         </Button>
-        )}
       </div>
     );
   }
@@ -168,19 +159,14 @@ export default function ActivationStatusPage() {
     try {
       if (actionType === "resend") {
         await authService.resendCredentials(selectedUser.id);
+        showToast("Credenciales reenviadas correctamente", "success");
       } else {
         await authService.manualActivate(selectedUser.id);
+        showToast("Cuenta activada correctamente", "success");
       }
-      // Refresh the list
-      window.location.reload();
     } catch (err) {
-      // Handle ALREADY_ACTIVE gracefully
-      if (err instanceof ApiError && err.message.includes("ALREADY_ACTIVE")) {
-        window.location.reload();
-      }
-      // For USER_NOT_FOUND, refresh the list
-      if (err instanceof ApiError && err.message.includes("USER_NOT_FOUND")) {
-        window.location.reload();
+      if (err instanceof ApiError) {
+        showToast(err.message, "error");
       }
     } finally {
       setIsProcessing(false);
@@ -190,22 +176,46 @@ export default function ActivationStatusPage() {
   }
 
   return (
-    <ApiCrudPage<AccountActivationStatus>
-      title="Estado de activación de cuentas"
-      description="Revisa qué cuentas ya fueron activadas por los usuarios."
-      columns={columns}
-      fields={[]}
-      api={{
-        list: activationStatusService.list,
-        create: async () => { throw new Error("not supported"); },
-        update: async () => { throw new Error("not supported"); },
-        remove: async () => { throw new Error("not supported"); },
-      }}
-      emptyItem={{} as AccountActivationStatus}
-      searchPlaceholder="Buscar usuario..."
-      readOnly={true}
-      filterComponent={ActivationFilters}
-      renderActions={getAvailableActions}
-    />
+    <>
+      <ApiCrudPage<AccountActivationStatus>
+        title="Estado de activación de cuentas"
+        description="Revisa qué cuentas ya fueron activadas por los usuarios."
+        columns={columns}
+        fields={[]}
+        api={{
+          list: activationStatusService.list,
+          create: async () => { throw new Error("not supported"); },
+          update: async () => { throw new Error("not supported"); },
+          remove: async () => { throw new Error("not supported"); },
+        }}
+        emptyItem={{} as AccountActivationStatus}
+        searchPlaceholder="Buscar usuario..."
+        readOnly={true}
+        filterComponent={ActivationFilters}
+        renderActions={getAvailableActions}
+        onCustomDelete={handleAction}
+        realtimeSearch={false}
+      />
+
+      <ConfirmDialog
+        open={!!selectedUser}
+        onOpenChange={(open) => {
+          if (!open) {
+            setSelectedUser(null);
+            setActionType(null);
+          }
+        }}
+        title={actionType === "resend" ? "¿Reenviar credenciales?" : "¿Activar cuenta manualmente?"}
+        description={
+          actionType === "resend"
+            ? "Se reenviarán las credenciales al usuario."
+            : "La cuenta será activada sin necesidad de código de verificación."
+        }
+        onConfirm={handleAction}
+        confirmLabel="Confirmar"
+        variant="default"
+        isLoading={isProcessing}
+      />
+    </>
   );
 }

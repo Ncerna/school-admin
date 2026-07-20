@@ -17,7 +17,9 @@ interface ConfirmDialogProps {
   description?: string;
   onConfirm: () => void;
   confirmLabel?: string;
+  confirmIcon?: React.ReactNode;
   isLoading?: boolean;
+  variant?: "default" | "destructive";
 }
 
 export function ConfirmDialog({
@@ -27,7 +29,9 @@ export function ConfirmDialog({
   description,
   onConfirm,
   confirmLabel = "Eliminar",
+  confirmIcon,
   isLoading = false,
+  variant = "destructive",
 }: ConfirmDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -44,8 +48,8 @@ export function ConfirmDialog({
             <X className="h-4 w-4" />
             Cancelar
           </Button>
-          <LoadingButton variant="destructive" isLoading={isLoading} onClick={onConfirm}>
-            <Trash2 className="h-4 w-4" />
+          <LoadingButton variant={variant} isLoading={isLoading} onClick={onConfirm}>
+            {confirmIcon}
             {confirmLabel}
           </LoadingButton>
         </DialogFooter>

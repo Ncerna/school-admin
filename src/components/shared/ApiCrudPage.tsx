@@ -65,6 +65,8 @@ interface ApiCrudPageProps<T extends { id: string }, TPayload = Omit<T, "id">> {
   summary?: any;
   /** Custom summary component to render (for reports) */
   summaryComponent?: (summary: any) => ReactNode;
+  /** Disable real-time search (search only on refetch) */
+  realtimeSearch?: boolean;
 }
 
 /**
@@ -93,8 +95,9 @@ export function ApiCrudPage<T extends { id: string }, TPayload = Omit<T, "id">>(
   renderActions,
   summary,
   summaryComponent,
+  realtimeSearch = true,
 }: ApiCrudPageProps<T, TPayload>) {
-  const resource = useCrudResource<T, TPayload, any>(api);
+  const resource = useCrudResource<T, TPayload, any>(api, { realtimeSearch });
   const [formOpen, setFormOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<T | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<T | null>(null);
@@ -200,11 +203,11 @@ export function ApiCrudPage<T extends { id: string }, TPayload = Omit<T, "id">>(
         </div>
       )}
 
-      {filterComponent?.({
+{filterComponent?.({
         setExtraParams: resource.setExtraParams,
         search: resource.search,
         setSearch: resource.setSearch,
-        refetch: resource.refetch,
+        refetch: realtimeSearch ? resource.refetch : resource.applySearch,
         searchPlaceholder,
         setPage: resource.setPage,
       })}
