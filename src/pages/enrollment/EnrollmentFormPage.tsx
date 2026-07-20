@@ -562,7 +562,7 @@ export default function EnrollmentFormPage() {
             </Button>
           </div>
         )}
-renderFormDialog={({ open, onOpenChange }) => (
+renderFormDialog={({ open, onOpenChange, refetch }) => (
           <EnrollmentFormDialog
             open={open}
             onOpenChange={onOpenChange}
@@ -577,7 +577,13 @@ renderFormDialog={({ open, onOpenChange }) => (
             setViewState={setViewState}
             error={error}
             onRegisterPayment={handleRegisterPayment}
-            onSuccess={handleSuccess}
+            onSuccess={() => {
+              showToast("Matrícula confirmada exitosamente", "success");
+              setViewState("form");
+              setPreviewData(null);
+              setConfirmedData(null);
+              refetch();
+            }}
           />
         )}
       />
