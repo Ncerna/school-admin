@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { LoadingButton } from "@/components/common/LoadingButton";
 import { useAuth } from "@/context/AuthContext";
-import { accountActivationService } from "@/services/account-activation.service";
+import { authService } from "@/services/auth.service";
 import { ApiError } from "@/types/api";
 
 function maskEmail(email: string): string {
@@ -15,13 +15,16 @@ function maskEmail(email: string): string {
   return masked;
 }
 
-export default function ActivateAccountPage() {
+export default function ChangePasswordPage() {
   const navigate = useNavigate();
   const { pendingUsername, clearPendingUsername } = useAuth();
   
-  const [code, setCode] = useState("");
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [mismatch, setMismatch] = useState(false);
   const [success, setSuccess] = useState(false);
 
   async function handleSubmit(e: FormEvent) {
@@ -33,24 +36,26 @@ export default function ActivateAccountPage() {
       return;
     }
 
+    if (newPassword !== confirmPassword) {
+      setMismatch(true);
+      return;
+    }
+    setMismatch(false);
+
     setIsSubmitting(true);
     try {
-      const result = await accountActivationService.verifyCode({ 
+      await authService.changePassword({ 
         identifier: pendingUsername, 
-        code 
+        currentPassword, 
+        newPassword 
       });
-      
-      if (result.success) {
-        setSuccess(true);
-        setTimeout(() => {
-          clearPendingUsername();
-          navigate("/cambiar-contrasena", { replace: true });
-        }, 2000);
-      } else {
-        setError(result.message ?? "Código incorrecto. Inténtalo nuevamente.");
-      }
+      setSuccess(true);
+      setTimeout(() => {
+        clearPendingUsername();
+        navigate("/login", { replace: true });
+      }, 2000);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "No se pudo verificar el código. Inténtalo nuevamente.");
+      setError(err instanceof ApiError ? err.message : "No se pudo cambiar la contraseña. Inténtalo nuevamente.");
     } finally {
       setIsSubmitting(false);
     }
@@ -61,7 +66,7 @@ export default function ActivateAccountPage() {
       <div className="flex min-h-screen items-center justify-center bg-muted/30 px-4">
         <div className="w-full max-w-sm rounded-xl border bg-card p-8 shadow-sm text-center">
           <p className="text-sm text-muted-foreground">
-            No hay una cuenta pendiente de activación.{" "}
+            No hay una cuenta pendiente.{" "}
             <Link to="/login" className="text-primary hover:underline">
               Volver al inicio de sesión
             </Link>
@@ -78,9 +83,9 @@ export default function ActivateAccountPage() {
           <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
             <KeyRound className="h-6 w-6" />
           </div>
-          <h1 className="text-xl font-semibold">Activar cuenta</h1>
+          <h1 className="text-xl font-semibold">Establecer nueva contraseña</h1>
           <p className="text-sm text-muted-foreground">
-            Ingresa el código de verificación que recibiste.
+            Tu contraseña temporal expiró. Crea una nueva contraseña.
           </p>
           <div className="flex items-center gap-1 text-xs text-muted-foreground">
             <Mail className="h-3 w-3" />
@@ -91,28 +96,52 @@ export default function ActivateAccountPage() {
         {success ? (
           <div className="flex flex-col items-center gap-2 py-4 text-center text-sm">
             <CheckCircle2 className="h-8 w-8 text-emerald-500" />
-            <p>Cuenta verificada correctamente. Redirigiendo para establecer contraseña...</p>
+            <p>Contraseña actualizada correctamente. Redirigiendo al inicio de sesión...</p>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="grid gap-4">
             <div className="grid gap-1.5">
-              <Label htmlFor="code">Código de verificación</Label>
+              <Label htmlFor="currentPassword">Contraseña actual (temporal)</Label>
               <Input
-                id="code"
-                type="text"
+                id="currentPassword"
+                type="password"
                 required
-                value={code}
-                onChange={(e) => setCode(e.target.value)}
-                placeholder="123456"
-                maxLength={6}
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
+                placeholder="••••••••"
               />
+            </div>
+
+            <div className="grid gap-1.5">
+              <Label htmlFor="newPassword">Nueva contraseña</Label>
+              <Input
+                id="newPassword"
+                type="password"
+                required
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                placeholder="Mínimo 8 caracteres"
+              />
+            </div>
+
+            <div className="grid gap-1.5">
+              <Label htmlFor="confirmPassword">Confirmar nueva contraseña</Label>
+              <Input
+                id="confirmPassword"
+                type="password"
+                required
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="••••••••"
+              />
+              {mismatch && <p className="text-xs text-destructive">Las contraseñas no coinciden.</p>}
             </div>
 
             {error && <p className="text-sm text-destructive">{error}</p>}
 
             <LoadingButton type="submit" isLoading={isSubmitting} className="w-full">
               <KeyRound className="h-4 w-4" />
-              Verificar código
+              Cambiar contraseña
             </LoadingButton>
           </form>
         )}

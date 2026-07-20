@@ -54,6 +54,7 @@ export interface AcademicYearOption {
 export interface GradeOption {
   id: number;
   name: string;
+  levelName?: string;
 }
 
 export interface CourseOption {

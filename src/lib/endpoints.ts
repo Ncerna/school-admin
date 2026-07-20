@@ -8,10 +8,15 @@ export const ENDPOINTS = {
     refresh: "/auth/refresh",
     logout: "/auth/logout",
     activate: "/auth/activate",
+    verifyCode: "/auth/verify-code",
+    changePassword: "/auth/change-password",
+    resendCredentials: "/auth/resend-credentials",
+    manualActivate: "/auth/manual-activate",
   },
   accounts: {
     activationStatus: "/users/pending-activation",
   },
+  
   students: "/students",
   teachers: "/teachers",
   levels: "/levels",

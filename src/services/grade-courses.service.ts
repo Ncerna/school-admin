@@ -102,4 +102,36 @@ export const gradeCoursesService = {
   // Get courses assigned to a grade with their names
   getCoursesByYearAndGrade: (yearId: number, gradeId: number) =>
     apiClient.get<CourseOption[]>(`${base}/courses`, { yearId, gradeId }),
+
+  // Get tree view data (flat list of assignments grouped by level/grade)
+  // API returns { data: { items: [...] } }
+  getTree: (yearId: number) =>
+    apiClient.get<GradeCourseTreeResponse>(`${base}`, { yearId }),
 };
+
+// Tree view item type
+export interface GradeCourseTreeItem {
+  id: number;
+  gradeId: number;
+  courseId: number;
+  yearId: number;
+  courseName: string;
+  gradeName: string;
+  levelName: string;
+  section: string;
+  date: string;
+  status: string;
+  deletedAt: string | null;
+}
+
+// Response from getTree API - contains items array
+export interface GradeCourseTreeResponse {
+  items: GradeCourseTreeItem[];
+}
+
+// Grade catalog item for tree view
+export interface GradeCatalogItem {
+  gradeId: number;
+  gradeName: string;
+  levelName: string;
+}

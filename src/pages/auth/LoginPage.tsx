@@ -5,12 +5,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { LoadingButton } from "@/components/common/LoadingButton";
 import { useAuth } from "@/context/AuthContext";
-import { ApiError } from "@/types/api";
+import type { LoginStatus } from "@/types/auth";
 
 export default function LoginPage() {
   const navigate = useNavigate();
-  const { login } = useAuth();
-  const [identifier, setIdentifier] = useState("");
+  const { login, pendingUsername } = useAuth();
+  const [identifier, setIdentifier] = useState(pendingUsername ?? "");
   const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -20,14 +20,27 @@ export default function LoginPage() {
     setIsSubmitting(true);
     setError(null);
     try {
-      const user = await login({ identifier, password });
-      if (user.requiresActivation) {
-        navigate("/activar-cuenta", { replace: true });
-      } else {
-        navigate("/dashboard", { replace: true });
+      const result = await login({ identifier, password });
+      
+      switch (result.status) {
+        case "COMPLETE":
+          navigate("/dashboard", { replace: true });
+          break;
+        case "ACCOUNT_NOT_ACTIVATED":
+          navigate("/activar-cuenta", { replace: true });
+          break;
+        case "PASSWORD_CHANGE_REQUIRED":
+          navigate("/cambiar-contrasena", { replace: true });
+          break;
+        case "USER_NOT_FOUND":
+        case "INVALID_PASSWORD":
+        case "INVALID_CREDENTIALS":
+        case "ACCOUNT_INACTIVE":
+          setError(result.message ?? "Error de autenticación");
+          break;
       }
-    } catch (err) {
-      setError(err instanceof ApiError ? err.message : "No se pudo iniciar sesión. Inténtalo nuevamente.");
+    } catch {
+      setError("No se pudo iniciar sesión. Inténtalo nuevamente.");
     } finally {
       setIsSubmitting(false);
     }
@@ -57,6 +70,7 @@ export default function LoginPage() {
                 value={identifier}
                 onChange={(e) => setIdentifier(e.target.value)}
                 placeholder="usuario@colegio.edu.pe"
+                disabled={isSubmitting}
               />
             </div>
           </div>
@@ -74,6 +88,7 @@ export default function LoginPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
+                disabled={isSubmitting}
               />
             </div>
           </div>
@@ -88,7 +103,7 @@ export default function LoginPage() {
 
         <div className="mt-6 flex flex-col items-center gap-2 text-sm">
           <Link to="/activar-cuenta" className="text-muted-foreground hover:text-foreground hover:underline">
-            ¿Olvidaste tu contraseña?
+            ¿Necesitas activar tu cuenta?
           </Link>
           <Link to="/" className="text-muted-foreground hover:text-foreground hover:underline">
             Ir al Portal Institucional

@@ -21,6 +21,8 @@ import {
   Wallet,
   FileBarChart,
   ListChecks,
+  CreditCard,
+  UserPlus,
   type LucideIcon,
 } from "lucide-react";
 
@@ -53,6 +55,7 @@ export const mainNavItems: NavItem[] = [
       { title: "Aulas", url: "/aulas", icon: DoorOpen },
       { title: "Cursos", url: "/cursos", icon: BookOpen },
       { title: "Asignar cursos a grados", url: "/grade-courses", icon: BookCopy },
+      { title: "Calificaciones", url: "/notas", icon: BookMarked },
     ],
   },
   {
@@ -78,14 +81,13 @@ export const mainNavItems: NavItem[] = [
     url: "/matricula",
     icon: GraduationCap,
   },
-  {
+{
     title: "Pagos",
     url: "/pagos",
     icon: Wallet,
     items: [
       { title: "Tarifas", url: "/fee-schedules", icon: FileText },
-      { title: "Registrar pago", url: "/pagos/registrar", icon: FileText },
-     
+      { title: "Registrar pago", url: "/pagos/registrar", icon: CreditCard },
       { title: "Reporte de pagos", url: "/pagos/reporte", icon: FileBarChart },
     ],
   },

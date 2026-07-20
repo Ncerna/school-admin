@@ -3,6 +3,7 @@ import { AuthProvider } from "@/context/AuthContext";
 import { ToastProvider } from "@/components/ui/toast";
 import { ProtectedRoute } from "@/components/common/ProtectedRoute";
 import { PublicOnlyRoute } from "@/components/common/PublicOnlyRoute";
+import { PendingRoute } from "@/components/common/PendingRoute";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Suspense, lazy } from "react";
 
@@ -10,6 +11,7 @@ import { Suspense, lazy } from "react";
 const PortalPage = lazy(() => import("@/pages/portal/PortalPage"));
 const LoginPage = lazy(() => import("@/pages/auth/LoginPage"));
 const ActivateAccountPage = lazy(() => import("@/pages/auth/ActivateAccountPage"));
+const ChangePasswordPage = lazy(() => import("@/pages/auth/ChangePasswordPage"));
 const ActivationStatusPage = lazy(() => import("@/pages/auth/ActivationStatusPage"));
 
 const Dashboard = lazy(() => import("@/pages/Dashboard"));
@@ -20,6 +22,7 @@ const TeacherFormPage = lazy(() => import("@/pages/teachers/TeacherFormPage"));
 const LevelsPage = lazy(() => import("@/pages/levels/LevelPage"));
 const ClassroomsPage = lazy(() => import("@/pages/classrooms/ClassroomPage"));
 const GradesPage = lazy(() => import("@/pages/grades/GradePage"));
+const GradesListPage = lazy(() => import("@/pages/grades/GradesPage"));
 const CoursesPage = lazy(() => import("@/pages/courses/CoursePage"));
 const GradeCoursePage = lazy(() => import("@/pages/grade-courses/GradeCoursePage"));
 const FeeSchedulePage = lazy(() => import("@/pages/fee-schedules/FeeSchedulePage"));
@@ -38,6 +41,8 @@ const PaymentsReportPage = lazy(() => import("@/pages/payments/PaymentsReportPag
 const TeacherAssignmentPage = lazy(() => import("@/pages/teacher-assignments/TeacherAssignmentPage"));
 const EvaluationCriteriaPage = lazy(() => import("@/pages/evaluation-criteria/EvaluationCriteriaPage"));
 const GuardiansPage = lazy(() => import("@/pages/guardians/GuardiansPage"));
+const ProfilePage = lazy(() => import("@/pages/profile/ProfilePage"));
+const PreferencesPage = lazy(() => import("@/pages/preferences/PreferencesPage"));
 
 // Loading fallback component
 function PageLoader() {
@@ -69,9 +74,18 @@ export default function App() {
                 <LoginPage />
               </Suspense>
             } />
+          </Route>
+
+          {/* Rutas con pending username: activar cuenta y cambiar contraseña */}
+          <Route element={<PendingRoute />}>
             <Route path="/activar-cuenta" element={
               <Suspense fallback={<PageLoader />}>
                 <ActivateAccountPage />
+              </Suspense>
+            } />
+            <Route path="/cambiar-contrasena" element={
+              <Suspense fallback={<PageLoader />}>
+                <ChangePasswordPage />
               </Suspense>
             } />
           </Route>
@@ -251,6 +265,25 @@ export default function App() {
               <Route path="/apoderados" element={
                 <Suspense fallback={<PageLoader />}>
                   <GuardiansPage />
+                </Suspense>
+              } />
+
+{/* Grades/Scores (en desarrollo) */}
+              <Route path="/notas" element={
+                <Suspense fallback={<PageLoader />}>
+                  <GradesListPage />
+                </Suspense>
+              } />
+
+              {/* Configuración (en desarrollo) */}
+              <Route path="/perfil" element={
+                <Suspense fallback={<PageLoader />}>
+                  <ProfilePage />
+                </Suspense>
+              } />
+              <Route path="/preferencias" element={
+                <Suspense fallback={<PageLoader />}>
+                  <PreferencesPage />
                 </Suspense>
               } />
             </Route>

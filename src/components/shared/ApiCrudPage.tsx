@@ -59,6 +59,8 @@ interface ApiCrudPageProps<T extends { id: string }, TPayload = Omit<T, "id">> {
   onCustomDelete?: (item: T) => Promise<void> | void;
   /** Read-only mode - hides the create button and edit/delete actions */
   readOnly?: boolean;
+  /** Custom render function for row actions (for custom action buttons) */
+  renderActions?: (item: T) => ReactNode;
   /** Summary data to display (for reports) */
   summary?: any;
   /** Custom summary component to render (for reports) */
@@ -88,6 +90,7 @@ export function ApiCrudPage<T extends { id: string }, TPayload = Omit<T, "id">>(
   onDataChange,
   onCustomDelete,
   readOnly = false,
+  renderActions,
   summary,
   summaryComponent,
 }: ApiCrudPageProps<T, TPayload>) {
@@ -209,12 +212,13 @@ export function ApiCrudPage<T extends { id: string }, TPayload = Omit<T, "id">>(
       {/* Summary component */}
       {displaySummary && summaryComponent && summaryComponent(displaySummary)}
 
-      <DataTable
+<DataTable
         columns={columns}
         data={resource.items}
         onEdit={handleEdit}
         onDelete={handleDeleteRow}
         onViewDetails={onViewDetails}
+        renderActions={renderActions}
         emptyMessage={resource.search ? "No se encontraron resultados." : "No hay registros todavía."}
         isLoading={resource.isLoading}
         deletingId={resource.deletingId}
@@ -223,7 +227,7 @@ export function ApiCrudPage<T extends { id: string }, TPayload = Omit<T, "id">>(
         onSort={resource.toggleSort}
         currentPage={resource.page}
         itemsPerPage={resource.pagination?.limit ?? 10}
-        hideRowActions={readOnly}
+        hideRowActions={readOnly && !renderActions}
       />
 
       <Pagination pagination={resource.pagination} onPageChange={resource.setPage} disabled={resource.isLoading} />

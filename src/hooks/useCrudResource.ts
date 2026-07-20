@@ -71,17 +71,21 @@ export function useCrudResource<TEntity extends { id: string }, TPayload = Parti
     } finally {
       setIsLoading(false);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, limit, debouncedSearch, sortBy, sortDir, JSON.stringify(extraParams)]);
 
   // Fetch on mount and when params change
   useEffect(() => {
     fetchPage();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, limit, debouncedSearch, sortBy, sortDir, JSON.stringify(extraParams)]);
 
   // Reset to page 1 whenever the search term changes so results aren't empty.
+  // Use a ref to prevent triggering fetch on initial mount
+  const isFirstSearch = useRef(true);
   useEffect(() => {
+    if (isFirstSearch.current) {
+      isFirstSearch.current = false;
+      return;
+    }
     setPage(1);
   }, [debouncedSearch]);
 
@@ -156,6 +160,7 @@ export function useCrudResource<TEntity extends { id: string }, TPayload = Parti
     update,
     remove,
     refetch: fetchPage,
+    extraParams,
     setExtraParams,
     summary,
   };

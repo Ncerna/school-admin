@@ -45,17 +45,26 @@ export interface ApiLoginResponse {
   permissions: string[];
 }
 
+export interface ApiLoginStepResponse {
+  auth_step: LoginStatus;
+  username: string;
+}
+
 export interface LoginPayload {
   identifier: string; // usuario o correo
   password: string;
 }
 
+export type LoginStatus = "USER_NOT_FOUND" | "INVALID_CREDENTIALS" | "INVALID_PASSWORD" | "ACCOUNT_INACTIVE" | "ACCOUNT_NOT_ACTIVATED" | "PASSWORD_CHANGE_REQUIRED" | "COMPLETE";
+
 export interface LoginResult {
-  accessToken: string;
-  refreshToken: string;
-  expiresAt: string; // ISO date-time
-  user: AuthUser;
-  menu: MenuPermission[];
+  status: LoginStatus;
+  accessToken?: string;
+  refreshToken?: string;
+  expiresAt?: string; // ISO date-time
+  user?: AuthUser;
+  menu?: MenuPermission[];
+  message?: string;
 }
 
 export interface RefreshResult {
@@ -70,12 +79,17 @@ export interface ActivateAccountPayload {
   passwordConfirmation: string;
 }
 
+export type ActivationStatus = "PENDING_ACTIVATION" | "ACTIVE" | "INACTIVE";
+
 export interface AccountActivationStatus {
   id: string;
   nombres: string;
   apellidos: string;
   correo: string;
-  estadoActivacion: "Pendiente" | "Activado";
+  usuario: string;
+  rol: string;
+  estadoActivacion: ActivationStatus;
   fechaEnvio?: string;
   fechaActivacion?: string;
+  verificationCodeExpiresAt?: string; // ISO date-time
 }
