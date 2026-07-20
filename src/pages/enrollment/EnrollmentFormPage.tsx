@@ -23,6 +23,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { AsyncSelectField } from "@/components/common/AsyncSelectField";
+import { useToast } from "@/components/ui/toast";
 import type { ColumnDef, EnrollmentListItem, EnrollmentPreview, EnrollmentConfirmed, EnrollmentPayload, GeneratedCharge } from "@/types";
 
 // Columns for the enrollment table
@@ -86,6 +87,7 @@ function EnrollmentFormDialog({
   setViewState,
   error,
   onRegisterPayment,
+  onSuccess,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -100,6 +102,7 @@ function EnrollmentFormDialog({
   setViewState: (state: "form" | "review" | "success") => void;
   error: string | null;
   onRegisterPayment?: (enrollmentId: string, enrollmentInstallments: number) => void;
+  onSuccess?: () => void;
 }) {
   const [formValues, setFormValues] = useState<EnrollmentPayload>({
     studentId: "",
@@ -130,7 +133,7 @@ function EnrollmentFormDialog({
     }
   }
 
-  async function handleConfirm() {
+async function handleConfirm() {
     setIsSubmitting(true);
     try {
       const payload: EnrollmentPayload = {
@@ -138,6 +141,9 @@ function EnrollmentFormDialog({
         enrollmentInstallments: showInstallments ? formValues.enrollmentInstallments : undefined,
       };
       await onConfirm(payload);
+      // Close dialog and show toast on success
+      onOpenChange(false);
+      onSuccess?.();
     } catch (err) {
       console.error("Confirm error:", err);
     } finally {
@@ -400,9 +406,12 @@ function EnrollmentFormDialog({
               </>
             )}
 
-            {viewState === "success" && (
+{viewState === "success" && (
               <>
-                <Button variant="outline" onClick={() => onOpenChange(false)}>
+                <Button variant="outline" onClick={() => {
+                  onOpenChange(false);
+                  onSuccess?.();
+                }}>
                   Cerrar
                 </Button>
                 <Button onClick={() => window.open(confirmedData?.pdfUrl || confirmedData?.pdf_url || "", "_blank")}>
@@ -423,6 +432,8 @@ function EnrollmentFormDialog({
 }
 
 export default function EnrollmentFormPage() {
+  const { showToast } = useToast();
+  
   // Load options for filters (auto-fetch on mount)
   const { options: filterYearOptions, isLoading: filterYearsLoading } = useOptions<{ id: string; name: string }>(
     ENDPOINTS.AcademicYears,
@@ -472,7 +483,7 @@ export default function EnrollmentFormPage() {
     }
   }
 
-  // Handle confirm
+// Handle confirm
   async function handleConfirm(payload: EnrollmentPayload) {
     setError(null);
     try {
@@ -482,6 +493,14 @@ export default function EnrollmentFormPage() {
     } catch (err: any) {
       setError(err.message || "Error al confirmar la matrícula");
     }
+  }
+
+  // Handle success - show toast and close dialog
+  function handleSuccess() {
+    showToast("Matrícula confirmada exitosamente", "success");
+    setViewState("form");
+    setPreviewData(null);
+    setConfirmedData(null);
   }
 
   // Handle register payment
@@ -543,7 +562,7 @@ export default function EnrollmentFormPage() {
             </Button>
           </div>
         )}
-        renderFormDialog={({ open, onOpenChange }) => (
+renderFormDialog={({ open, onOpenChange }) => (
           <EnrollmentFormDialog
             open={open}
             onOpenChange={onOpenChange}
@@ -558,6 +577,7 @@ export default function EnrollmentFormPage() {
             setViewState={setViewState}
             error={error}
             onRegisterPayment={handleRegisterPayment}
+            onSuccess={handleSuccess}
           />
         )}
       />

@@ -49,4 +49,5 @@ export const ENDPOINTS = {
   teacherAssignmentReport: "/teacher-assignment-report",
   evaluationCriteria: "/evaluation-criteria",
   guardians: "/guardians",
+  staff: "/staff",
 } as const;

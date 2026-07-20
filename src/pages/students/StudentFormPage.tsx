@@ -25,7 +25,7 @@ const emptyStudent: StudentPayload = {
   birthDate: "",
   emergencyContact: "",
   livesWithParents: true,
-  guardian: { names: "", last_name: "", dni: "", phone: "", relationshipType: "" },
+  guardian: { names: "", last_name: "", dni: "", phone: "", relationship_type: "" },
 };
 
 // Map API error field names to local field names
@@ -45,10 +45,10 @@ export default function StudentFormPage() {
 
   const [values, setValues] = useState<StudentPayload>(emptyStudent);
 
-  // Ensure guardian is always defined (handles case when API returns undefined)
+// Ensure guardian is always defined (handles case when API returns undefined)
   const safeValues = {
     ...values,
-    guardian: values.guardian ?? { names: "", last_name: "", dni: "", phone: "", relationshipType: "" },
+    guardian: values.guardian ?? { names: "", last_name: "", dni: "", phone: "", relationship_type: "" },
   };
  
   const [isLoading, setIsLoading] = useState(isEditing);
@@ -76,10 +76,10 @@ export default function StudentFormPage() {
     setValues((prev) => ({ ...prev, [key]: value }));
   }
 
-  function updateGuardian(key: string, value: string) {
+function updateGuardian(key: string, value: string) {
     setValues((prev) => ({
       ...prev,
-      guardian: { ...(prev.guardian ?? { names: "", last_name: "", dni: "", phone: "", relationshipType: "" }), [key]: value },
+      guardian: { ...(prev.guardian ?? { names: "", last_name: "", dni: "", phone: "", relationship_type: "" }), [key]: value },
     }));
   }
 
@@ -262,11 +262,11 @@ export default function StudentFormPage() {
                 {fieldError("guardian.phone") && <p className="text-xs text-destructive">{fieldError("guardian.phone")}</p>}
               </div>
 
-              <div className="grid gap-1.5">
+<div className="grid gap-1.5">
                 <Label>Tipo de parentesco</Label>
                 <Select
-                  value={safeValues.guardian.relationshipType}
-                  onValueChange={(v) => updateGuardian("relationshipType", v)}
+                  value={safeValues.guardian.relationship_type}
+                  onValueChange={(v) => updateGuardian("relationship_type", v)}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Selecciona" />

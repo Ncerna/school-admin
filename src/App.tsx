@@ -43,6 +43,8 @@ const EvaluationCriteriaPage = lazy(() => import("@/pages/evaluation-criteria/Ev
 const GuardiansPage = lazy(() => import("@/pages/guardians/GuardiansPage"));
 const ProfilePage = lazy(() => import("@/pages/profile/ProfilePage"));
 const PreferencesPage = lazy(() => import("@/pages/preferences/PreferencesPage"));
+const StaffPage = lazy(() => import("@/pages/staff/StaffPage"));
+const StaffFormPage = lazy(() => import("@/pages/staff/StaffFormPage"));
 
 // Loading fallback component
 function PageLoader() {
@@ -261,14 +263,31 @@ export default function App() {
                 </Suspense>
               } />
 
-              {/* Guardians (RF-HU-026) */}
+{/* Guardians (RF-HU-026) */}
               <Route path="/apoderados" element={
                 <Suspense fallback={<PageLoader />}>
                   <GuardiansPage />
                 </Suspense>
               } />
 
-{/* Grades/Scores (en desarrollo) */}
+              {/* Staff (RF-HU-026) */}
+              <Route path="/personal-administrativo" element={
+                <Suspense fallback={<PageLoader />}>
+                  <StaffPage />
+                </Suspense>
+              } />
+              <Route path="/personal-administrativo/nuevo" element={
+                <Suspense fallback={<PageLoader />}>
+                  <StaffFormPage />
+                </Suspense>
+              } />
+              <Route path="/personal-administrativo/editar" element={
+                <Suspense fallback={<PageLoader />}>
+                  <StaffFormPage />
+                </Suspense>
+              } />
+
+              {/* Grades/Scores (en desarrollo) */}
               <Route path="/notas" element={
                 <Suspense fallback={<PageLoader />}>
                   <GradesListPage />

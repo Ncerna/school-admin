@@ -85,6 +85,14 @@ export interface Role {
   description?: string;
 }
 
+export interface Menu {
+  id: string;
+  title: string;
+  url: string;
+  icon: string;
+  items?: Menu[];
+}
+
 export interface MenuAccess {
   id: string;
   name: string;
@@ -110,6 +118,20 @@ export interface Teacher {
   paymentFrequency?: "Mensual" | "Quincenal" | "Semanal" | "Diario" | "Por hora";
 }
 
+export interface Staff {
+  id: string;
+  firstName: string;
+  lastName: string;
+  dni: string;
+  email: string;
+  phone: string;
+  position: string;
+  role: string;
+  status: Status;
+}
+
+export type StaffPayload = Omit<Staff, "id" | "status">;
+
 export type Gender = "male" | "female";
 export type RelationshipType = "Father" | "Mother" | "Tutor" | "Grandparent" | "Other";
 
@@ -119,7 +141,7 @@ export interface Guardian {
   last_name: string;
   dni: string;
   phone: string;
-  relationshipType: RelationshipType | "";
+  relationship_type: RelationshipType | "";
   status?: Status;
 }
 

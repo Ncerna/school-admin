@@ -23,6 +23,7 @@ import {
   ListChecks,
   CreditCard,
   UserPlus,
+  Briefcase,
   type LucideIcon,
 } from "lucide-react";
 
@@ -76,10 +77,15 @@ export const mainNavItems: NavItem[] = [
       { title: "Asignaciones docentes", url: "/asignaciones-docente", icon: UserCog },
     ],
   },
-  {
+{
     title: "Matrícula",
     url: "/matricula",
     icon: GraduationCap,
+  },
+{
+    title: "Turnos",
+    url: "/turnos",
+    icon: Clock,
   },
 {
     title: "Pagos",
@@ -91,7 +97,7 @@ export const mainNavItems: NavItem[] = [
       { title: "Reporte de pagos", url: "/pagos/reporte", icon: FileBarChart },
     ],
   },
-  {
+{
     title: "Administración",
     url: "/administracion",
     icon: ShieldCheck,
@@ -100,6 +106,7 @@ export const mainNavItems: NavItem[] = [
       { title: "Publicaciones", url: "/publicaciones", icon: Newspaper },
       { title: "Accesos", url: "/accesos", icon: ShieldCheck },
       { title: "Activación de cuentas", url: "/activacion-cuentas", icon: UserCheck },
+      { title: "Personal administrativo", url: "/personal-administrativo", icon: Briefcase },
     ],
   },
   {

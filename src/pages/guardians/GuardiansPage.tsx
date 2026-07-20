@@ -10,7 +10,7 @@ const columns: ColumnDef<Guardian>[] = [
   { header: "Teléfono", accessor: "phone" },
   { 
     header: "Relación", 
-    accessor: "relationshipType",
+    accessor: "relationship_type",
     render: (item) => {
       const labels: Record<string, string> = {
         Father: "Padre",
@@ -20,7 +20,7 @@ const columns: ColumnDef<Guardian>[] = [
         Other: "Otro",
         "": "—",
       };
-      return labels[item.relationshipType] || item.relationshipType;
+      return labels[item.relationship_type] || item.relationship_type;
     }
   },
   { 
@@ -36,7 +36,7 @@ const fields: FieldDef<Guardian>[] = [
   { name: "dni", label: "DNI", type: "text", placeholder: "Ej. 12345678", required: true },
   { name: "phone", label: "Teléfono", type: "text", placeholder: "Ej. 987654321" },
   {
-    name: "relationshipType",
+    name: "relationship_type",
     label: "Relación",
     type: "select",
     required: true,
@@ -68,7 +68,7 @@ export default function GuardiansPage() {
       columns={columns}
       fields={fields}
       api={guardiansService}
-      emptyItem={{ names: "", last_name: "", dni: "", phone: "", relationshipType: "", status: "Activo" }}
+      emptyItem={{ names: "", last_name: "", dni: "", phone: "", relationship_type: "", status: "Activo" }}
       searchPlaceholder="Buscar apoderado..."
       newLabel="Nuevo apoderado"
     />
