@@ -216,7 +216,15 @@ export function ChargesPaymentPanel({ payableId, chargeTypeFilter, submitEndpoin
     );
   }, []);
 
-  // Handle "select all pending" checkbox
+// Generate automatic reference for payment method
+const generateReference = useCallback((paymentMethodCode: string): string => {
+  const now = new Date();
+  const timestamp = now.getTime().toString().slice(-6);
+  const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+  return `${paymentMethodCode}-${timestamp}${random}`;
+}, []);
+
+// Handle "select all pending" checkbox
   const handleSelectAllPending = useCallback((checked: boolean) => {
     if (checked) {
       const pendingIds = pendingCharges.map((c) => c.id);
@@ -229,13 +237,20 @@ export function ChargesPaymentPanel({ payableId, chargeTypeFilter, submitEndpoin
   // Handle payment method change
   const handleMethodChange = useCallback((entryId: string, field: keyof PaymentMethodFormEntry, value: string | number | null) => {
     setPaymentMethodEntries((prev) =>
-      prev.map((entry) =>
-        entry.id === entryId ? { ...entry, [field]: value } : entry
-      )
+      prev.map((entry) => {
+        if (entry.id !== entryId) return entry;
+        
+        // If payment method code is being set and it's not CASH, auto-generate reference
+        if (field === "paymentMethodCode" && value && value !== "CASH") {
+          return { ...entry, [field]: value as string, reference: generateReference(value as string) };
+        }
+        
+        return { ...entry, [field]: value };
+      })
     );
-  }, []);
+  }, [generateReference]);
 
-  // Add new payment method row
+// Add new payment method row
   const addPaymentMethod = useCallback(() => {
     setPaymentMethodEntries((prev) => [
       ...prev,
