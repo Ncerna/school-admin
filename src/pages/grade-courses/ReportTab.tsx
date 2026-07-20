@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { ChevronDown, ChevronRight, BookOpen, BookMarked, Edit } from "lucide-react";
+import { ChevronDown, ChevronRight, BookMarked } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useOptions } from "@/hooks/useOptions";
@@ -14,10 +14,9 @@ interface TreeItemProps {
   children?: React.ReactNode;
   defaultExpanded?: boolean;
   courseCount?: number;
-  onEdit?: () => void;
 }
 
-function TreeItem({ label, icon, children, defaultExpanded = true, courseCount, onEdit }: TreeItemProps) {
+function TreeItem({ label, icon, children, defaultExpanded = true, courseCount }: TreeItemProps) {
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
 
   return (
@@ -35,17 +34,6 @@ function TreeItem({ label, icon, children, defaultExpanded = true, courseCount, 
           <span className="text-xs text-muted-foreground ml-2">
             {courseCount === 0 ? "Sin cursos asignados" : `${courseCount} ${courseCount === 1 ? "curso" : "cursos"}`}
           </span>
-        )}
-        {onEdit && (
-          <Button
-            variant="ghost"
-            size="sm"
-            className="ml-auto"
-            onClick={onEdit}
-          >
-            <Edit className="h-3 w-3 mr-1" />
-            Editar
-          </Button>
         )}
       </div>
       {isExpanded && children && (
@@ -73,7 +61,15 @@ export function ReportTab() {
     true
   );
 
-const [selectedYearId, setSelectedYearId] = useState<string>("");
+  // Use the centralized useOptions hook for grades
+  const { options: gradeOptions, isLoading: isLoadingGrades } = useOptions<GradeOption>(
+    ENDPOINTS.grades,
+    (item) => ({ label: item.name, value: String(item.id) }),
+    true
+  );
+
+  const [selectedYearId, setSelectedYearId] = useState<string>("");
+  const [selectedGradeId, setSelectedGradeId] = useState<string>("");
   const [treeData, setTreeData] = useState<GradeCourseTreeItem[]>([]);
   const [gradeCatalog, setGradeCatalog] = useState<GradeOption[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -97,16 +93,14 @@ const [selectedYearId, setSelectedYearId] = useState<string>("");
           gradeCoursesService.getGrades(),
         ]);
         // API returns { items: [...] } inside data, or direct array
-        console.log('Tree response:', tree);
-        const treeItems = Array.isArray(tree) 
-          ? tree 
-          : Array.isArray(tree?.items) 
-            ? tree.items 
+        const treeItems = Array.isArray(tree)
+          ? tree
+          : Array.isArray(tree?.items)
+            ? tree.items
             : [];
         setTreeData(treeItems);
         setGradeCatalog(grades);
       } catch (err) {
-        console.error('Error fetching data:', err);
         setError(err instanceof Error ? err.message : "Error al cargar los datos");
         setTreeData([]);
         setGradeCatalog([]);
@@ -118,42 +112,51 @@ const [selectedYearId, setSelectedYearId] = useState<string>("");
     fetchData();
   }, [selectedYearId]);
 
-// Build hierarchical data structure
+  // Build hierarchical data structure - only 2 levels: Grade -> Courses
   const hierarchicalData = useMemo(() => {
-    if (!gradeCatalog.length) return {};
-
-    // Group grades by level
-    const levelsMap: Record<string, { grades: Record<string, { id: number; name: string; courses: string[] }> }> = {};
+    // Group courses by grade using gradeId as key
+    const gradesMap: Record<number, { id: number; name: string; levelName: string; courses: string[] }> = {};
 
     // Initialize with all grades from catalog
     gradeCatalog.forEach(grade => {
-      const levelName = grade.levelName || "Sin nivel";
-      if (!levelsMap[levelName]) {
-        levelsMap[levelName] = { grades: {} };
-      }
-      levelsMap[levelName].grades[grade.name] = {
+      gradesMap[grade.id] = {
         id: grade.id,
         name: grade.name,
+        levelName: grade.levelName || "",
         courses: [],
       };
     });
 
-    // Add courses from tree data
+    // Add courses from tree data - match by gradeId
+    // Also add grades that are in treeData but not in gradeCatalog
     treeData.forEach(item => {
-      if (levelsMap[item.levelName]?.grades[item.gradeName]) {
-        levelsMap[item.levelName].grades[item.gradeName].courses.push(item.courseName);
+      if (!gradesMap[item.gradeId]) {
+        // Grade not in catalog, add it from treeData
+        gradesMap[item.gradeId] = {
+          id: item.gradeId,
+          name: item.gradeName,
+          levelName: item.levelName || "",
+          courses: [],
+        };
       }
+      
+      gradesMap[item.gradeId].courses.push(item.courseName);
     });
 
-    return levelsMap;
+    return gradesMap;
   }, [gradeCatalog, treeData]);
 
-  // Handle edit click - navigate to edit modal
-  const handleEdit = (yearId: number, gradeId: number) => {
-    // Navigate to the edit modal in AssignmentTab
-    // This would need to be implemented with router navigation
-    console.log(`Edit grade ${gradeId} for year ${yearId}`);
-  };
+  // Filter grades by selected grade (if any)
+  const filteredGrades = useMemo(() => {
+    if (!selectedGradeId) return hierarchicalData;
+    
+    const filtered: typeof hierarchicalData = {};
+    const gradeId = Number(selectedGradeId);
+    if (hierarchicalData[gradeId]) {
+      filtered[gradeId] = hierarchicalData[gradeId];
+    }
+    return filtered;
+  }, [hierarchicalData, selectedGradeId]);
 
   return (
     <div className="space-y-4">
@@ -163,20 +166,43 @@ const [selectedYearId, setSelectedYearId] = useState<string>("");
         </div>
       )}
 
-      <div className="flex items-center gap-2">
-        <span className="text-sm font-medium">Año Académico:</span>
-        <Select value={selectedYearId} onValueChange={setSelectedYearId} disabled={isLoadingYears}>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Seleccionar año" />
-          </SelectTrigger>
-          <SelectContent>
-            {academicYearOptions.map((option) => (
-              <SelectItem key={option.value} value={option.value}>
-                {option.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+      <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-medium">Año Académico:</span>
+          <Select value={selectedYearId} onValueChange={setSelectedYearId} disabled={isLoadingYears}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Seleccionar año" />
+            </SelectTrigger>
+            <SelectContent>
+              {academicYearOptions.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-medium">Grado:</span>
+          <Select 
+            value={selectedGradeId} 
+            onValueChange={setSelectedGradeId} 
+            disabled={!selectedYearId || isLoadingGrades}
+          >
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Todos los grados" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="">Todos los grados</SelectItem>
+              {Object.entries(hierarchicalData).map(([gradeId, gradeInfo]) => (
+                <SelectItem key={gradeId} value={gradeId}>
+                  {gradeInfo.levelName ? `${gradeInfo.name} (${gradeInfo.levelName})` : gradeInfo.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       {!selectedYearId ? (
@@ -192,7 +218,7 @@ const [selectedYearId, setSelectedYearId] = useState<string>("");
             <p className="text-sm text-muted-foreground">Cargando reporte...</p>
           </div>
         </div>
-      ) : Object.keys(hierarchicalData).length === 0 ? (
+      ) : Object.keys(filteredGrades).length === 0 ? (
         <div className="flex items-center justify-center py-12">
           <p className="text-sm text-muted-foreground">
             No hay grados registrados para este año académico.
@@ -200,27 +226,29 @@ const [selectedYearId, setSelectedYearId] = useState<string>("");
         </div>
       ) : (
         <div className="border rounded-lg p-4">
-          {Object.entries(hierarchicalData).map(([levelName, levelData]) => (
-            <TreeItem key={levelName} label={levelName} icon={<BookOpen className="h-4 w-4" />}>
-              {Object.entries(levelData.grades).map(([gradeName, gradeInfo]) => (
-                <TreeItem
-                  key={gradeName}
-                  label={gradeName}
-                  icon={<BookMarked className="h-4 w-4" />}
-                  courseCount={gradeInfo.courses.length}
-                  onEdit={() => handleEdit(Number(selectedYearId), gradeInfo.id)}
-                >
-                  {gradeInfo.courses.length === 0 ? (
-                    <p className="text-sm text-muted-foreground px-6 py-2">Sin cursos asignados</p>
-                  ) : (
-                    gradeInfo.courses.map((course) => (
-                      <CourseItem key={course} name={course} />
-                    ))
-                  )}
-                </TreeItem>
-              ))}
-            </TreeItem>
-          ))}
+          {Object.entries(filteredGrades).map(([gradeKey, gradeInfo]) => {
+            // Build display name: "gradeName (levelName)"
+            const displayName = gradeInfo.levelName
+              ? `${gradeInfo.name} (${gradeInfo.levelName})`
+              : gradeInfo.name;
+
+            return (
+              <TreeItem
+                key={gradeKey}
+                label={displayName}
+                icon={<BookMarked className="h-4 w-4" />}
+                courseCount={gradeInfo.courses.length}
+              >
+                {gradeInfo.courses.length === 0 ? (
+                  <p className="text-sm text-muted-foreground px-6 py-2">Sin cursos asignados</p>
+                ) : (
+                  gradeInfo.courses.map((course) => (
+                    <CourseItem key={course} name={course} />
+                  ))
+                )}
+              </TreeItem>
+            );
+          })}
         </div>
       )}
     </div>
