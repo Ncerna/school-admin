@@ -3,6 +3,13 @@ import { tokenStorage } from "./token-storage";
 import { ApiError, type ApiResponse, type ListParams } from "@/types/api";
 import type { RefreshResult } from "@/types/auth";
 
+// Backend refresh response uses snake_case
+interface ApiRefreshResponse {
+  access_token: string;
+  refresh_token: string;
+  access_token_expires_at: string;
+}
+
 type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 
 interface RequestOptions {
@@ -62,16 +69,26 @@ async function refreshAccessToken(): Promise<RefreshResult> {
         body: JSON.stringify({ refresh_token:refreshToken }),
       });
 
-      const payload = (await response.json()) as ApiResponse<RefreshResult>;
-      if (!response.ok || !payload.success) {
-        throw new ApiError(payload.message ?? "Session expired.", response.status);
+      const raw = (await response.json()) as ApiResponse<ApiRefreshResponse> | ApiRefreshResponse;
+      
+      // Handle both wrapped and unwrapped response formats
+      const data = 'data' in raw ? raw.data : raw;
+      
+      if (!response.ok) {
+        throw new ApiError("Session expired.", response.status);
       }
 
-      tokenStorage.updateTokens(payload.data);
-      return payload.data;
-    })().finally(() => {
-      refreshPromise = null;
-    });
+  // Map snake_case from backend to camelCase for frontend
+  const mappedData = {
+    accessToken: data.access_token,
+    refreshToken: data.refresh_token,
+    expiresAt: data.access_token_expires_at,
+  };
+  tokenStorage.updateTokens(mappedData);
+  return mappedData;
+})().finally(() => {
+  refreshPromise = null;
+});
   }
   return refreshPromise;
 }
@@ -245,4 +262,7 @@ export const apiClient = {
 
     return response.json();
   },
+
+  /** Expose refresh function for manual refresh (e.g., from SessionExpiryModal) */
+  refresh: () => refreshAccessToken(),
 };

@@ -21,13 +21,14 @@ const emptyStaff: StaffPayload = {
   email: "",
   phone: "",
   position: "",
-  role: "",
+  roleId: "",
 };
 
 // Map API error field names to local field names
 const errorFieldMap: Record<string, string> = {
   first_name: "firstName",
   last_name: "lastName",
+  role_id: "roleId",
 };
 
 export default function StaffFormPage() {
@@ -63,8 +64,8 @@ export default function StaffFormPage() {
   }, []);
 
   // Use a ref to track if this is the first render to avoid double fetch in StrictMode
-  const isFirstRender = useRef(true);
   const hasFetchedRoles = useRef(false);
+  const hasFetchedStaff = useRef(false);
 
   useEffect(() => {
     // Fetch roles on mount (lazy loading)
@@ -74,18 +75,45 @@ export default function StaffFormPage() {
     }
   }, [fetchRoles]);
 
+  // Effect to load staff data for editing (after roles are loaded)
   useEffect(() => {
     if (!staffId) return;
-    if (isFirstRender.current) {
-      isFirstRender.current = false;
+    if (hasFetchedStaff.current) return;
+    // Only fetch if roles are already loaded
+    if (roleOptions.length > 0) {
+      hasFetchedStaff.current = true;
       setIsLoading(true);
       staffService
         .getById(staffId)
-        .then((staff) => setValues(staff))
+        .then((staff) => {
+          // Convert role name to roleId for the form
+          const roleId = roleOptions.find(r => r.label === staff.role)?.value || "";
+          setValues({ ...staff, roleId });
+        })
         .catch((err) => setGeneralError(err instanceof ApiError ? err.message : "No se pudo cargar el personal."))
         .finally(() => setIsLoading(false));
     }
-  }, [staffId]);
+  }, [staffId, roleOptions]);
+
+  // Effect to load staff data for editing (after roles are loaded)
+  useEffect(() => {
+    if (!staffId) return;
+    if (hasFetchedStaff.current) return;
+    // Only fetch if roles are already loaded
+    if (roleOptions.length > 0) {
+      hasFetchedStaff.current = true;
+      setIsLoading(true);
+      staffService
+        .getById(staffId)
+        .then((staff) => {
+          // Convert role name to roleId for the form
+          const roleId = roleOptions.find(r => r.label === staff.role)?.value || "";
+          setValues({ ...staff, roleId });
+        })
+        .catch((err) => setGeneralError(err instanceof ApiError ? err.message : "No se pudo cargar el personal."))
+        .finally(() => setIsLoading(false));
+    }
+  }, [staffId, roleOptions]);
 
   function updateField(key: string, value: string | boolean) {
     setValues((prev) => ({ ...prev, [key]: value }));
@@ -190,23 +218,22 @@ export default function StaffFormPage() {
               <div className="grid gap-1.5">
                 <Label>Rol <span className="text-destructive">*</span></Label>
                 <Select 
-                  value={values.role} 
-                  onValueChange={(v) => updateField("role", v)}
+                  value={values.roleId}
+                  onValueChange={(v) => updateField("roleId", v)}
                   disabled={isLoadingRoles}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Selecciona" />
                   </SelectTrigger>
                   <SelectContent>
-                    {roleOptions
-                      .filter(role => role.label !== "ALUM" && role.label !== "DOC")
-                      .map((role) => (
-                        <SelectItem key={role.value} value={role.value}>
-                          {role.label}
-                        </SelectItem>
-                      ))}
+                    {roleOptions.map((role) => (
+                      <SelectItem key={role.value} value={role.value}>
+                        {role.label}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
+                {fieldError("roleId") && <p className="text-xs text-destructive">{fieldError("roleId")}</p>}
               </div>
             </CardContent>
           </Card>

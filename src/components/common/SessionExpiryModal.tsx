@@ -9,8 +9,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { LoadingButton } from "@/components/common/LoadingButton";
-import { authService } from "@/services/auth.service";
-import { tokenStorage } from "@/lib/token-storage";
+import { apiClient } from "@/lib/api-client";
 import { useAuth } from "@/context/AuthContext";
 
 interface SessionExpiryModalProps {
@@ -25,16 +24,11 @@ export function SessionExpiryModal({ open, onRefreshed }: SessionExpiryModalProp
   const [error, setError] = useState<string | null>(null);
 
   async function handleRefresh() {
-    const refreshToken = tokenStorage.getRefreshToken();
-    if (!refreshToken) {
-      await logout();
-      return;
-    }
     setIsRefreshing(true);
     setError(null);
     try {
-      const result = await authService.refresh(refreshToken);
-      tokenStorage.updateTokens(result);
+      // apiClient.refresh will update tokens in storage
+      await apiClient.refresh();
       onRefreshed();
     } catch {
       setError("El refresh token es inválido o expiró. Cerrando sesión...");

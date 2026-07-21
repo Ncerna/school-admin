@@ -96,7 +96,12 @@ export interface Menu {
 export interface MenuAccess {
   id: string;
   name: string;
+  icon?: string;
+  url?: string;
+  parent_id?: string | null;
+  order?: number;
   assigned: boolean;
+  children?: MenuAccess[];
 }
 
 export interface Teacher {
@@ -127,10 +132,11 @@ export interface Staff {
   phone: string;
   position: string;
   role: string;
+  roleId: string;
   status: Status;
 }
 
-export type StaffPayload = Omit<Staff, "id" | "status">;
+export type StaffPayload = Omit<Staff, "id" | "status" | "role"> & { roleId: string };
 
 export type Gender = "male" | "female";
 export type RelationshipType = "Father" | "Mother" | "Tutor" | "Grandparent" | "Other";

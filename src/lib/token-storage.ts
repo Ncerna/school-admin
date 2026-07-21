@@ -61,6 +61,9 @@ export const tokenStorage = {
     localStorage.setItem(STORAGE_KEYS.accessToken, tokens.accessToken);
     localStorage.setItem(STORAGE_KEYS.refreshToken, tokens.refreshToken);
     localStorage.setItem(STORAGE_KEYS.expiresAt, tokens.expiresAt);
+    
+    // Notify that tokens were updated (for AuthContext to react if needed)
+    window.dispatchEvent(new CustomEvent("auth:tokens-updated"));
   },
 
   clear() {

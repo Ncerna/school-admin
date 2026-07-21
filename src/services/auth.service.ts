@@ -1,6 +1,7 @@
 import { apiClient } from "@/lib/api-client";
-import { ENDPOINTS } from "@/lib/endpoints";
+import { API_BASE_URL, ENDPOINTS } from "@/lib/endpoints";
 import { ApiError } from "@/types/api";
+import { tokenStorage } from "@/lib/token-storage";
 import type {
   AccountActivationStatus,
   ActivateAccountPayload,
@@ -100,8 +101,10 @@ export const authService = {
   changePassword: (payload: { identifier: string; currentPassword: string; newPassword: string }) =>
     apiClient.post<null>(ENDPOINTS.auth.changePassword, payload, { requiresAuth: false }),
 
-  refresh: (refreshToken: string) =>
-    apiClient.post<RefreshResult>(ENDPOINTS.auth.refresh, { refreshToken }, { requiresAuth: false }),
+  refresh: async (): Promise<RefreshResult> => {
+    // Delegate to apiClient.refresh which has the shared refresh logic
+    return apiClient.refresh();
+  },
 
   logout: () => apiClient.post<null>(ENDPOINTS.auth.logout),
 

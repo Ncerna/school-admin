@@ -34,8 +34,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setPendingUsername(null);
       navigate("/login", { replace: true });
     }
+    function handleTokensUpdated() {
+      // Tokens were updated (e.g., via refresh), re-read from storage
+      // Note: user and menu don't change on refresh, only tokens
+    }
     window.addEventListener("auth:session-expired", handleSessionExpired);
-    return () => window.removeEventListener("auth:session-expired", handleSessionExpired);
+    window.addEventListener("auth:tokens-updated", handleTokensUpdated);
+    return () => {
+      window.removeEventListener("auth:session-expired", handleSessionExpired);
+      window.removeEventListener("auth:tokens-updated", handleTokensUpdated);
+    };
   }, [navigate]);
 
 async function login(payload: LoginPayload): Promise<LoginResult> {
