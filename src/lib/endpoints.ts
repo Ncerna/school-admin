@@ -30,6 +30,7 @@ export const ENDPOINTS = {
   evaluationTypes: "/evaluation-types",
   evaluationPeriods: "/evaluation-period",
   roles: "/roles",
+  rolesOptions: "/roles/options",
   menus: "/menus",
   gradeCourses: "/grade-courses",
   publications: "/publications",

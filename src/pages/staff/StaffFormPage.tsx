@@ -9,9 +9,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { LoadingButton } from "@/components/common/LoadingButton";
 import { Button } from "@/components/ui/button";
 import { staffService } from "@/services/staff.service";
-import { rolesService } from "@/services/roles.service";
+import { rolesService, type RoleOption } from "@/services/roles.service";
 import { ApiError } from "@/types/api";
-import type { Staff, StaffPayload, Role } from "@/types";
+import type { Staff, StaffPayload } from "@/types";
 import { useToast } from "@/components/ui/toast";
 
 const emptyStaff: StaffPayload = {
@@ -43,18 +43,15 @@ export default function StaffFormPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [errors, setErrors] = useState<Record<string, string[]> | null>(null);
   const [generalError, setGeneralError] = useState<string | null>(null);
-  const [roleOptions, setRoleOptions] = useState<Array<{ label: string; value: string }>>([]);
+  const [roleOptions, setRoleOptions] = useState<RoleOption[]>([]);
   const [isLoadingRoles, setIsLoadingRoles] = useState(false);
 
-  // Fetch roles using rolesService.list (paginated endpoint)
+  // Fetch roles using rolesService.getOptions (options endpoint)
   const fetchRoles = useCallback(async () => {
     setIsLoadingRoles(true);
     try {
-      const response = await rolesService.list();
-      setRoleOptions(response.items.map((r: Role) => ({
-        label: r.name,
-        value: String(r.id),
-      })));
+      const response = await rolesService.getOptions();
+      setRoleOptions(response);
     } catch (err) {
       console.error("Error fetching roles:", err);
       setRoleOptions([]);
@@ -86,29 +83,8 @@ export default function StaffFormPage() {
       staffService
         .getById(staffId)
         .then((staff) => {
-          // Convert role name to roleId for the form
-          const roleId = roleOptions.find(r => r.label === staff.role)?.value || "";
-          setValues({ ...staff, roleId });
-        })
-        .catch((err) => setGeneralError(err instanceof ApiError ? err.message : "No se pudo cargar el personal."))
-        .finally(() => setIsLoading(false));
-    }
-  }, [staffId, roleOptions]);
-
-  // Effect to load staff data for editing (after roles are loaded)
-  useEffect(() => {
-    if (!staffId) return;
-    if (hasFetchedStaff.current) return;
-    // Only fetch if roles are already loaded
-    if (roleOptions.length > 0) {
-      hasFetchedStaff.current = true;
-      setIsLoading(true);
-      staffService
-        .getById(staffId)
-        .then((staff) => {
-          // Convert role name to roleId for the form
-          const roleId = roleOptions.find(r => r.label === staff.role)?.value || "";
-          setValues({ ...staff, roleId });
+          // Use roleId directly from API response
+          setValues({ ...staff, roleId: String(staff.roleId) });
         })
         .catch((err) => setGeneralError(err instanceof ApiError ? err.message : "No se pudo cargar el personal."))
         .finally(() => setIsLoading(false));
@@ -227,8 +203,8 @@ export default function StaffFormPage() {
                   </SelectTrigger>
                   <SelectContent>
                     {roleOptions.map((role) => (
-                      <SelectItem key={role.value} value={role.value}>
-                        {role.label}
+                      <SelectItem key={String(role.id)} value={String(role.id)}>
+                        {role.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
