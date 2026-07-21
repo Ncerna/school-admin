@@ -6,12 +6,7 @@ export interface VerifyCodePayload {
   code: string;
 }
 
-export interface VerifyCodeResult {
-  success: boolean;
-  message?: string;
-}
-
 export const accountActivationService = {
   verifyCode: (payload: VerifyCodePayload) =>
-    apiClient.post<VerifyCodeResult>(ENDPOINTS.auth.verifyCode, payload, { requiresAuth: false }),
+    apiClient.requestWithData<void>(ENDPOINTS.auth.verifyCode, { method: "POST", body: payload, requiresAuth: false }),
 };

@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent, useRef } from "react";
+import { useEffect, useState, type FormEvent, useRef, useCallback } from "react";
 import { useNavigate, Link, useLocation } from "react-router-dom";
 import { ArrowLeft, Save, X } from "lucide-react";
 import { PageHeader } from "@/components/shared/PageHeader";
@@ -9,9 +9,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { LoadingButton } from "@/components/common/LoadingButton";
 import { Button } from "@/components/ui/button";
 import { staffService } from "@/services/staff.service";
+import { rolesService } from "@/services/roles.service";
 import { ApiError } from "@/types/api";
-import { useOptions } from "@/hooks/useOptions";
-import { ENDPOINTS } from "@/lib/endpoints";
 import type { Staff, StaffPayload, Role } from "@/types";
 import { useToast } from "@/components/ui/toast";
 
@@ -43,16 +42,37 @@ export default function StaffFormPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [errors, setErrors] = useState<Record<string, string[]> | null>(null);
   const [generalError, setGeneralError] = useState<string | null>(null);
+  const [roleOptions, setRoleOptions] = useState<Array<{ label: string; value: string }>>([]);
+  const [isLoadingRoles, setIsLoadingRoles] = useState(false);
 
-  // Get roles for selector (excluding ALUM and DOC)
-  const { options: roleOptions, isLoading: isLoadingRoles } = useOptions<Role>(
-    ENDPOINTS.roles,
-    (item) => ({ label: item.name, value: String(item.id) }),
-    true
-  );
+  // Fetch roles using rolesService.list (paginated endpoint)
+  const fetchRoles = useCallback(async () => {
+    setIsLoadingRoles(true);
+    try {
+      const response = await rolesService.list();
+      setRoleOptions(response.items.map((r: Role) => ({
+        label: r.name,
+        value: String(r.id),
+      })));
+    } catch (err) {
+      console.error("Error fetching roles:", err);
+      setRoleOptions([]);
+    } finally {
+      setIsLoadingRoles(false);
+    }
+  }, []);
 
   // Use a ref to track if this is the first render to avoid double fetch in StrictMode
   const isFirstRender = useRef(true);
+  const hasFetchedRoles = useRef(false);
+
+  useEffect(() => {
+    // Fetch roles on mount (lazy loading)
+    if (!hasFetchedRoles.current) {
+      hasFetchedRoles.current = true;
+      fetchRoles();
+    }
+  }, [fetchRoles]);
 
   useEffect(() => {
     if (!staffId) return;

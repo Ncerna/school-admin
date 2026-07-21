@@ -10,21 +10,12 @@ import { SearchInput } from "@/components/common/SearchInput";
 import { Button } from "@/components/ui/button";
 import { useCrudResource } from "@/hooks/useCrudResource";
 import { staffService } from "@/services/staff.service";
-import { useOptions } from "@/hooks/useOptions";
-import { ENDPOINTS } from "@/lib/endpoints";
-import type { ColumnDef, Staff, Role } from "@/types";
+import type { ColumnDef, Staff } from "@/types";
 
 export default function StaffPage() {
   const navigate = useNavigate();
   const resource = useCrudResource<Staff>(staffService);
   const [deleteTarget, setDeleteTarget] = useState<Staff | null>(null);
-
-  // Get roles for filter (excluding ALUM and DOC)
-  const { options: roleOptions } = useOptions<Role>(
-    ENDPOINTS.roles,
-    (item) => ({ label: item.name, value: String(item.id) }),
-    true
-  );
 
   const columns: ColumnDef<Staff>[] = [
     { header: "Nombres", accessor: "firstName", sortable: true },
@@ -33,14 +24,7 @@ export default function StaffPage() {
     { header: "Correo", accessor: "email", sortable: true },
     { header: "Teléfono", accessor: "phone" },
     { header: "Cargo", accessor: "position" },
-    { 
-      header: "Rol", 
-      accessor: "role",
-      render: (item) => {
-        const role = roleOptions.find(r => r.value === item.role);
-        return role ? role.label : item.role;
-      }
-    },
+    { header: "Rol", accessor: "role" },
     { 
       header: "Estado", 
       accessor: "status",

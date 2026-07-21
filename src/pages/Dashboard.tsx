@@ -19,7 +19,7 @@ export default function Dashboard() {
             <Card className="transition-shadow hover:shadow-md">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground">{item.title}</CardTitle>
-                <item.icon className="h-4 w-4 text-muted-foreground" />
+                <item.icon className="h-5 w-5 text-primary" />
               </CardHeader>
               <CardContent>
                 <p className="text-xs text-muted-foreground">Ir al módulo →</p>

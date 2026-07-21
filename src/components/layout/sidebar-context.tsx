@@ -102,9 +102,9 @@ export function SidebarProvider({ children }: { children: React.ReactNode }) {
       if (menus && menus.length > 0) {
         setMenuItems(menus.map(mapMenuToNavItem));
       }
+      // If API fails or returns empty, use static mainNavItems (no error thrown)
     } catch (err) {
-      // Keep empty array on error, will use static fallback
-      console.error("Failed to load menus:", err);
+      // Silently use static fallback - API endpoint may not exist
     } finally {
       setIsLoadingMenus(false);
     }

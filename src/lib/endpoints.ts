@@ -10,8 +10,10 @@ export const ENDPOINTS = {
     activate: "/auth/activate",
     verifyCode: "/auth/verify-code",
     changePassword: "/auth/change-password",
-    resendCredentials: "/auth/resend-credentials",
-    manualActivate: "/auth/manual-activate",
+  },
+  users: {
+    resendCredentials: (id: string) => `/users/${id}/resend-credentials`,
+    activateByAdmin: (id: string) => `/users/${id}/activate-by-admin`,
   },
   accounts: {
     activationStatus: "/users/pending-activation",

@@ -112,8 +112,8 @@ export const authService = {
     apiClient.get<PaginatedData<AccountActivationStatus>>(ENDPOINTS.accounts.activationStatus, params),
 
   resendCredentials: (userId: string) =>
-    apiClient.post<{ success: boolean; message: string }>(ENDPOINTS.auth.resendCredentials, { userId }),
+    apiClient.post(ENDPOINTS.users.resendCredentials(userId)),
 
   manualActivate: (userId: string) =>
-    apiClient.post<{ success: boolean; message: string }>(ENDPOINTS.auth.manualActivate, { userId }),
+    apiClient.post(ENDPOINTS.users.activateByAdmin(userId)),
 };
