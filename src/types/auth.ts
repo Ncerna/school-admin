@@ -15,6 +15,7 @@ export interface MenuPermission {
   ruta: string;
   icono?: string;
   acciones: string[];
+  children?: MenuPermission[];
 }
 
 // API response types (snake_case from backend)

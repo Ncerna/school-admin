@@ -34,6 +34,7 @@ function mapApiMenu(apiMenus: ApiMenu[]): LoginResult["menu"] {
     ruta: menu.route,
     icono: menu.icon,
     acciones: [], // API returns permissions separately, not per menu
+    children: menu.children ? mapApiMenu(menu.children) : undefined,
   }));
 }
 

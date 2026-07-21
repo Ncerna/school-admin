@@ -1,6 +1,6 @@
 import * as React from "react";
-import { menusService } from "@/services/menus.service";
-import type { Menu } from "@/types";
+import { useAuth } from "@/context/AuthContext";
+import type { MenuPermission } from "@/types/auth";
 import type { NavItem } from "./nav-items";
 import {
   LayoutDashboard,
@@ -41,18 +41,15 @@ interface SidebarContextValue {
   toggleSubmenu: (url: string) => void;
   /** Set submenu expanded state */
   setSubmenuExpanded: (url: string, expanded: boolean) => void;
-  /** Dynamic menu items loaded from API */
+  /** Dynamic menu items from auth context */
   menuItems: NavItem[];
-  /** Loading state for menus */
-  isLoadingMenus: boolean;
-  /** Refresh menus from API */
-  refetchMenus: () => Promise<void>;
 }
 
 const SidebarContext = React.createContext<SidebarContextValue | null>(null);
 
-// Map icon names to Lucide icons
+// Map icon names to Lucide icons (both PascalCase and kebab-case)
 const iconMap: Record<string, LucideIcon> = {
+  // PascalCase (from menu-structure.json)
   LayoutDashboard,
   BookOpen,
   GraduationCap,
@@ -75,45 +72,63 @@ const iconMap: Record<string, LucideIcon> = {
   BookCopy,
   Clock,
   Briefcase,
+  // kebab-case (from API)
+  "layout-dashboard": LayoutDashboard,
+  "book-open": BookOpen,
+  "graduation-cap": GraduationCap,
+  "user-cog": UserCog,
+  "shield-check": ShieldCheck,
+  "settings": Settings,
+  "users": Users,
+  "school": School,
+  "newspaper": Newspaper,
+  "wallet": Wallet,
+  "file-text": FileText,
+  "file-bar-chart": FileBarChart,
+  "credit-card": CreditCard,
+  "list-checks": ListChecks,
+  "calendar-range": CalendarRange,
+  "calendar-check": CalendarCheck,
+  "clipboard-check": ClipboardCheck,
+  "door-open": DoorOpen,
+  "book-marked": BookMarked,
+  "book-copy": BookCopy,
+  "clock": Clock,
+  "briefcase": Briefcase,
 };
 
-function mapMenuToNavItem(menu: Menu): NavItem {
-  const IconComponent = iconMap[menu.icon] || LayoutDashboard;
-  return {
-    title: menu.title,
-    url: menu.url,
+// Map menu permission (from auth) to NavItem format
+function mapMenuPermissionToNavItem(menu: MenuPermission): NavItem {
+  const IconComponent = iconMap[menu.icono || ""] || LayoutDashboard;
+  const result: NavItem = {
+    title: menu.nombre,
+    url: menu.ruta,
     icon: IconComponent,
-    items: menu.items?.map(mapMenuToNavItem),
   };
+  if (menu.children && menu.children.length > 0) {
+    result.items = menu.children.map(mapMenuPermissionToNavItem);
+  }
+  return result;
 }
 
 export function SidebarProvider({ children }: { children: React.ReactNode }) {
+  const { menu: userMenu } = useAuth();
   const [collapsed, setCollapsed] = React.useState(false);
   const [mobileOpen, setMobileOpen] = React.useState(false);
   const [expandedItems, setExpandedItems] = React.useState<Record<string, boolean>>({});
   const [menuItems, setMenuItems] = React.useState<NavItem[]>([]);
-  const [isLoadingMenus, setIsLoadingMenus] = React.useState(true);
 
-  const fetchMenus = React.useCallback(async () => {
-    setIsLoadingMenus(true);
-    try {
-      const menus = await menusService.getMenus();
-      // If API returns empty, use static fallback
-      if (menus && menus.length > 0) {
-        setMenuItems(menus.map(mapMenuToNavItem));
-      }
-      // If API fails or returns empty, use static mainNavItems (no error thrown)
-    } catch (err) {
-      // Silently use static fallback - API endpoint may not exist
-    } finally {
-      setIsLoadingMenus(false);
-    }
-  }, []);
-
-  // Load menus on mount
+  // Convert user menu to NavItem format when user menu changes
   React.useEffect(() => {
-    fetchMenus();
-  }, [fetchMenus]);
+    console.log('userMenu from API:', JSON.stringify(userMenu, null, 2));
+    if (userMenu && userMenu.length > 0) {
+      const mapped = userMenu.map(mapMenuPermissionToNavItem);
+      console.log('mapped menuItems:', JSON.stringify(mapped, null, 2));
+      setMenuItems(mapped);
+    } else {
+      console.log('No userMenu, using fallback');
+    }
+  }, [userMenu]);
 
   const toggleSubmenu = React.useCallback((url: string) => {
     setExpandedItems((prev) => ({ ...prev, [url]: !prev[url] }));
@@ -133,10 +148,8 @@ export function SidebarProvider({ children }: { children: React.ReactNode }) {
       toggleSubmenu,
       setSubmenuExpanded,
       menuItems,
-      isLoadingMenus,
-      refetchMenus: fetchMenus,
     }),
-    [collapsed, mobileOpen, expandedItems, menuItems, isLoadingMenus, fetchMenus]
+    [collapsed, mobileOpen, expandedItems, menuItems]
   );
 
   return <SidebarContext.Provider value={value}>{children}</SidebarContext.Provider>;

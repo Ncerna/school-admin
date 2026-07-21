@@ -10,7 +10,6 @@ import {
 } from "@/components/ui/tooltip";
 import { mainNavItems, type NavItem } from "./nav-items";
 import { useSidebar } from "./sidebar-context";
-import { useEffect } from "react";
 
 function Brand({ collapsed }: { collapsed: boolean }) {
   return (
@@ -115,7 +114,7 @@ function NavItemComponent({ item, collapsed, onNavigate, level = 0 }: { item: Na
 }
 
 function NavList({ collapsed, onNavigate }: { collapsed: boolean; onNavigate?: () => void }) {
-  const { menuItems, isLoadingMenus } = useSidebar();
+  const { menuItems } = useSidebar();
   
   // Use dynamic menus if available, otherwise fallback to static mainNavItems
   const items = menuItems.length > 0 ? menuItems : mainNavItems;
@@ -123,8 +122,8 @@ function NavList({ collapsed, onNavigate }: { collapsed: boolean; onNavigate?: (
   return (
     <nav className="flex-1 overflow-y-auto py-2 scrollbar-thin scrollbar-thumb-sidebar-border scrollbar-track-transparent hover:scrollbar-thumb-sidebar-foreground/20">
       <div className="space-y-1 px-2">
-        {items.map((item) => (
-          <NavItemComponent key={item.url} item={item} collapsed={collapsed} onNavigate={onNavigate} />
+        {items.map((item, index) => (
+          <NavItemComponent key={`${item.url}-${index}`} item={item} collapsed={collapsed} onNavigate={onNavigate} />
         ))}
       </div>
     </nav>
