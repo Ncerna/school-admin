@@ -1,8 +1,9 @@
-import { useMemo, useCallback } from "react";
+import { useMemo, useCallback, useState } from "react";
 import { ApiCrudPage } from "@/components/shared/ApiCrudPage";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { gradesService } from "@/services/grades.service";
 import { useOptions } from "@/hooks/useOptions";
+import { GradeDeleteDialog } from "./GradeDeleteDialog";
 import type { ColumnDef, FieldDef, Grade, Level, Classroom } from "@/types";
 
 // Memoize the empty item to prevent unnecessary re-renders
@@ -41,16 +42,15 @@ export default function GradesPage() {
 
   const columns: ColumnDef<Grade>[] = [
     { header: "Grado", accessor: "name", sortable: true },
-  { header: "Sección", accessor: "section" },
-  { header: "Nivel", accessor: "levelName" },
-  { header: "Aula", accessor: "classroomName" },
-  { header: "Vacantes", accessor: "vacancies" },
+    { header: "Sección", accessor: "section" },
+    { header: "Nivel", accessor: "levelName" },
+    { header: "Aula", accessor: "classroomName" },
+    { header: "Vacantes", accessor: "vacancies" },
     { header: "Estado", accessor: "status", render: (item) => <StatusBadge estado={item.status} /> },
   ];
 
   // Memoize fields to avoid re-creating on each render
   const fields = useMemo<FieldDef<Grade>[]>(() => {
-   
     return [
       { name: "name", label: "Grado", type: "text", placeholder: "Ej. 1°", required: true },
       { 
@@ -82,18 +82,46 @@ export default function GradesPage() {
     ];
   }, [levelOptions, classroomOptions]);
 
+  // Custom delete dialog state
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [gradeToDelete, setGradeToDelete] = useState<Grade | null>(null);
+  const [refetchKey, setRefetchKey] = useState(0);
+
+  const handleDeleteSuccess = useCallback(() => {
+    // Force refetch by changing the key
+    setRefetchKey(prev => prev + 1);
+  }, []);
+
+  // Custom delete handler that opens our custom dialog
+  const handleCustomDelete = (item: Grade) => {
+    setGradeToDelete(item);
+    setDeleteDialogOpen(true);
+  };
+
   return (
-    <ApiCrudPage<Grade>
-      title="Grados"
-      description="Organiza la estructura académica: grados, secciones y aulas asignadas."
-      columns={columns}
-      fields={fields}
-      api={gradesService}
-      emptyItem={emptyGrade}
-      searchPlaceholder="Buscar grado..."
-      newLabel="Nuevo grado"
-      onFormOpen={handleFormOpen}
-      isFormLoading={isFormLoading}
-    />
+    <div key={refetchKey}>
+      <ApiCrudPage<Grade>
+        title="Grados"
+        description="Organiza la estructura académica: grados, secciones y aulas asignadas."
+        columns={columns}
+        fields={fields}
+        api={gradesService}
+        emptyItem={emptyGrade}
+        searchPlaceholder="Buscar grado..."
+        newLabel="Nuevo grado"
+        onFormOpen={handleFormOpen}
+        isFormLoading={isFormLoading}
+        onCustomDelete={handleCustomDelete}
+        readOnly={false}
+      />
+
+      {/* Custom delete dialog for grades with dependency handling */}
+      <GradeDeleteDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        grade={gradeToDelete}
+        onSuccess={handleDeleteSuccess}
+      />
+    </div>
   );
 }

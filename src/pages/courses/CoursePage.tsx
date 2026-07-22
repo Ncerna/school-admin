@@ -1,6 +1,8 @@
+import { useMemo, useCallback, useState } from "react";
 import { ApiCrudPage } from "@/components/shared/ApiCrudPage";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { coursesService } from "@/services/courses.service";
+import { CourseDeleteDialog } from "./CourseDeleteDialog";
 import type { ColumnDef, Course, FieldDef } from "@/types";
 
 const columns: ColumnDef<Course>[] = [
@@ -25,16 +27,40 @@ const fields: FieldDef<Course>[] = [
 ];
 
 export default function CoursesPage() {
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [courseToDelete, setCourseToDelete] = useState<Course | null>(null);
+  const [refetchKey, setRefetchKey] = useState(0);
+
+  const handleDeleteSuccess = useCallback(() => {
+    setRefetchKey(prev => prev + 1);
+  }, []);
+
+  const handleCustomDelete = (item: Course) => {
+    setCourseToDelete(item);
+    setDeleteDialogOpen(true);
+  };
+
   return (
-    <ApiCrudPage<Course>
-      title="Cursos"
-      description="Mantén actualizado el catálogo institucional de cursos."
-      columns={columns}
-      fields={fields}
-      api={coursesService}
-      emptyItem={{ name: "", code: "", status: "Activo" }}
-      searchPlaceholder="Buscar curso..."
-      newLabel="Nuevo curso"
-    />
+    <div key={refetchKey}>
+      <ApiCrudPage<Course>
+        title="Cursos"
+        description="Mantén actualizado el catálogo institucional de cursos."
+        columns={columns}
+        fields={fields}
+        api={coursesService}
+        emptyItem={{ name: "", code: "", status: "Activo" }}
+        searchPlaceholder="Buscar curso..."
+        newLabel="Nuevo curso"
+        onCustomDelete={handleCustomDelete}
+        readOnly={false}
+      />
+
+      <CourseDeleteDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        course={courseToDelete}
+        onSuccess={handleDeleteSuccess}
+      />
+    </div>
   );
 }
