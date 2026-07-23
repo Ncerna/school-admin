@@ -114,10 +114,22 @@ function NavItemComponent({ item, collapsed, onNavigate, level = 0 }: { item: Na
 }
 
 function NavList({ collapsed, onNavigate }: { collapsed: boolean; onNavigate?: () => void }) {
-  const { menuItems } = useSidebar();
+  const { menuItems, isMenuLoaded } = useSidebar();
   
-  // Use dynamic menus if available, otherwise fallback to static mainNavItems
-  const items = menuItems.length > 0 ? menuItems : mainNavItems;
+  // If the API already returned a response (even empty), use menuItems
+  // If the API hasn't responded yet, show nothing
+  const items = isMenuLoaded ? menuItems : menuItems.length > 0 ? menuItems : [];
+  
+  // If there are no items to show, render nothing
+  if (items.length === 0) {
+    return (
+      <nav className="flex items-center justify-center flex-1 px-4">
+        <p className="text-sm text-sidebar-foreground/50 text-center">
+          {isMenuLoaded ? "No tienes acceso a ningún módulo" : ""}
+        </p>
+      </nav>
+    );
+  }
 
   return (
     <nav className="flex-1 overflow-y-auto py-2 scrollbar-thin scrollbar-thumb-sidebar-border scrollbar-track-transparent hover:scrollbar-thumb-sidebar-foreground/20">

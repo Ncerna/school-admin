@@ -17,7 +17,12 @@ export function useOptions<T extends { id: string | number }>(
 ) {
   const [options, setOptions] = useState<SelectOption[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const isFirstRender = useRef(true);
+  // Use a ref to track if we've already fetched (for StrictMode compatibility)
+  const hasFetchedRef = useRef(false);
+  // Store mapToOption in a ref to avoid it changing between renders
+  // This prevents the fetch callback from being recreated on every render
+  const mapToOptionRef = useRef(mapToOption);
+  mapToOptionRef.current = mapToOption;
 
   const fetch = useCallback(async () => {
     setIsLoading(true);
@@ -25,22 +30,26 @@ export function useOptions<T extends { id: string | number }>(
       // apiClient.get already extracts the `data` property from the response
       const data = await apiClient.get<T[]>(`${endpoint}/options`);
       // Ensure all values are strings - protect against undefined data
-      setOptions((data ?? []).map((item) => ({
-        ...mapToOption(item),
-        value: String(mapToOption(item).value),
-      })));
+      // Use ref to get the latest mapToOption without causing re-renders
+      setOptions((data ?? []).map((item) => {
+        const mapped = mapToOptionRef.current(item);
+        return {
+          ...mapped,
+          value: String(mapped.value),
+        };
+      }));
     } catch (err) {
       console.error(`Error fetching options from ${endpoint}/options:`, err);
       setOptions([]);
     } finally {
       setIsLoading(false);
     }
-  }, [endpoint, mapToOption]);
+  }, [endpoint]);
 
   // Auto-fetch on mount only if autoFetch is true (only once, not in StrictMode)
   useEffect(() => {
-    if (autoFetch && isFirstRender.current) {
-      isFirstRender.current = false;
+    if (autoFetch && !hasFetchedRef.current) {
+      hasFetchedRef.current = true;
       fetch();
     }
   }, [autoFetch, fetch]);

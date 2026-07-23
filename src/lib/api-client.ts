@@ -176,12 +176,7 @@ async function requestForm<T>(path: string, options: FormRequestOptions): Promis
  * Request that returns the full response including data even on error.
  * Useful for endpoints that return special data in error responses.
  */
-async function requestWithData<T>(path: string, options: RequestOptions = {}): Promise<{
-  success: boolean;
-  message: string;
-  data: T | null;
-  errors: unknown;
-}> {
+async function requestWithData<T>(path: string, options: RequestOptions = {}): Promise<any> {
   const { method = "GET", body, params, requiresAuth = true, isRetry = false, signal } = options;
 
   const headers: Record<string, string> = { "Content-Type": "application/json" };
@@ -199,7 +194,7 @@ async function requestWithData<T>(path: string, options: RequestOptions = {}): P
   });
 
   const text = await response.text();
-  const payload = (text ? JSON.parse(text) : {}) as ApiResponse<T>;
+  const payload = (text ? JSON.parse(text) : {}) as any;
 
   if (response.status === 401 && requiresAuth && !isRetry) {
     try {
@@ -212,12 +207,7 @@ async function requestWithData<T>(path: string, options: RequestOptions = {}): P
     }
   }
 
-  return {
-    success: payload.success,
-    message: payload.message,
-    data: payload.data,
-    errors: payload.errors,
-  };
+  return payload;
 }
 
 /** Single, centralized API client used by every service in the app. */
@@ -234,7 +224,10 @@ export const apiClient = {
   patch: <T>(path: string, body?: unknown, options?: RequestOptions) =>
     request<T>(path, { ...options, method: "PATCH", body }),
 
-  delete: <T>(path: string, options?: RequestOptions) => request<T>(path, { ...options, method: "DELETE" }),
+  delete: <T>(path: string, options?: RequestOptions & { body?: unknown }) => {
+    const { body, ...rest } = options ?? {};
+    return request<T>(path, { ...rest, method: "DELETE", body });
+  },
 
   postForm: <T>(path: string, body: FormData, options?: FormRequestOptions) =>
     requestForm<T>(path, { ...options, method: "POST", body }),
@@ -260,7 +253,11 @@ export const apiClient = {
       throw new ApiError(`Error ${response.status}: ${response.statusText}`, response.status);
     }
 
-    return response.json();
+    const payload = (await response.json()) as ApiResponse<T>;
+    if (!payload.success) {
+      throw new ApiError(payload.message ?? "Unexpected error.", response.status, payload.errors ?? null);
+    }
+    return payload.data;
   },
 
   /** Expose refresh function for manual refresh (e.g., from SessionExpiryModal) */

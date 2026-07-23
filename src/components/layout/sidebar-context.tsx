@@ -29,27 +29,22 @@ import {
 } from "lucide-react";
 
 interface SidebarContextValue {
-  /** Sidebar de escritorio expandido u ocupando solo iconos */
   collapsed: boolean;
   toggleCollapsed: () => void;
-  /** Sidebar móvil (sheet) abierto o cerrado */
   mobileOpen: boolean;
   setMobileOpen: (open: boolean) => void;
-  /** Estado de los submenús expandidos (clave: url del item padre) */
   expandedItems: Record<string, boolean>;
-  /** Toggle submenu expansion */
   toggleSubmenu: (url: string) => void;
-  /** Set submenu expanded state */
   setSubmenuExpanded: (url: string, expanded: boolean) => void;
-  /** Dynamic menu items from auth context */
   menuItems: NavItem[];
+  /** Indica si el menú del usuario ya se cargó desde el API */
+  isMenuLoaded: boolean;
 }
 
 const SidebarContext = React.createContext<SidebarContextValue | null>(null);
 
 // Map icon names to Lucide icons (both PascalCase and kebab-case)
 const iconMap: Record<string, LucideIcon> = {
-  // PascalCase (from menu-structure.json)
   LayoutDashboard,
   BookOpen,
   GraduationCap,
@@ -72,7 +67,6 @@ const iconMap: Record<string, LucideIcon> = {
   BookCopy,
   Clock,
   Briefcase,
-  // kebab-case (from API)
   "layout-dashboard": LayoutDashboard,
   "book-open": BookOpen,
   "graduation-cap": GraduationCap,
@@ -97,7 +91,6 @@ const iconMap: Record<string, LucideIcon> = {
   "briefcase": Briefcase,
 };
 
-// Map menu permission (from auth) to NavItem format
 function mapMenuPermissionToNavItem(menu: MenuPermission): NavItem {
   const IconComponent = iconMap[menu.icono || ""] || LayoutDashboard;
   const result: NavItem = {
@@ -117,16 +110,24 @@ export function SidebarProvider({ children }: { children: React.ReactNode }) {
   const [mobileOpen, setMobileOpen] = React.useState(false);
   const [expandedItems, setExpandedItems] = React.useState<Record<string, boolean>>({});
   const [menuItems, setMenuItems] = React.useState<NavItem[]>([]);
+  const [isMenuLoaded, setIsMenuLoaded] = React.useState(false);
 
-  // Convert user menu to NavItem format when user menu changes
   React.useEffect(() => {
     console.log('userMenu from API:', JSON.stringify(userMenu, null, 2));
     if (userMenu && userMenu.length > 0) {
       const mapped = userMenu.map(mapMenuPermissionToNavItem);
       console.log('mapped menuItems:', JSON.stringify(mapped, null, 2));
       setMenuItems(mapped);
+      setIsMenuLoaded(true);
+    } else if (userMenu && userMenu.length === 0) {
+      // Menú vacío del API - no mostrar nada
+      console.log('User menu is empty array - showing no menus');
+      setMenuItems([]);
+      setIsMenuLoaded(true);
     } else {
-      console.log('No userMenu, using fallback');
+      // userMenu es null o undefined - aún no cargado
+      console.log('No userMenu yet, waiting...');
+      setIsMenuLoaded(false);
     }
   }, [userMenu]);
 
@@ -148,8 +149,9 @@ export function SidebarProvider({ children }: { children: React.ReactNode }) {
       toggleSubmenu,
       setSubmenuExpanded,
       menuItems,
+      isMenuLoaded,
     }),
-    [collapsed, mobileOpen, expandedItems, menuItems]
+    [collapsed, mobileOpen, expandedItems, menuItems, isMenuLoaded]
   );
 
   return <SidebarContext.Provider value={value}>{children}</SidebarContext.Provider>;
