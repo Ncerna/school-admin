@@ -573,28 +573,28 @@ export default function PortalPage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
-    let cancelled = false;
+    const abortController = new AbortController();
     async function loadData() {
       try {
         const [info, pubs] = await Promise.all([
           portalService.getSchoolInfo(),
           portalService.getPublications({ limit: 50 }),
         ]);
-        if (!cancelled) {
+        if (!abortController.signal.aborted) {
           setSchoolInfo(info);
           setPublications(pubs ?? []);
         }
       } catch (err) {
-        if (!cancelled) {
+        if (!abortController.signal.aborted) {
           console.error("Error loading portal data:", err);
           setError("No se pudo cargar la información del portal.");
         }
       } finally {
-        if (!cancelled) setIsLoading(false);
+        if (!abortController.signal.aborted) setIsLoading(false);
       }
     }
     loadData();
-    return () => { cancelled = true; };
+    return () => abortController.abort();
   }, []);
 
   const handleToggleMobile = useCallback(() => {
