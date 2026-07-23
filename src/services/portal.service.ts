@@ -7,7 +7,7 @@ export const portalService = {
     apiClient.getDirect<SchoolInfo>(`${ENDPOINTS.school}/info`),
 
   getPublications: (params?: { section?: string; page?: number; limit?: number }) =>
-    apiClient.getDirect<{ items: PortalPublication[]; pagination: { current_page: number; limit: number; total: number } }>(
+    apiClient.getDirect<PortalPublication[]>(
       `${ENDPOINTS.publications}/info`,
       params as Record<string, unknown>
     ),

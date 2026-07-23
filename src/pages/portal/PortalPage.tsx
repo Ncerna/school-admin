@@ -32,7 +32,7 @@ export default function PortalPage() {
           portalService.getPublications({ limit: 50 }),
         ]);
         setSchoolInfo(info);
-        setPublications(pubs?.items ?? []);
+        setPublications(pubs ?? []);
       } catch (err) {
         console.error("Error loading portal data:", err);
         setError("No se pudo cargar la información del portal.");

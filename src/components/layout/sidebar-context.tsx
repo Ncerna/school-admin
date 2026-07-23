@@ -113,20 +113,20 @@ export function SidebarProvider({ children }: { children: React.ReactNode }) {
   const [isMenuLoaded, setIsMenuLoaded] = React.useState(false);
 
   React.useEffect(() => {
-    console.log('userMenu from API:', JSON.stringify(userMenu, null, 2));
+   
     if (userMenu && userMenu.length > 0) {
       const mapped = userMenu.map(mapMenuPermissionToNavItem);
-      console.log('mapped menuItems:', JSON.stringify(mapped, null, 2));
+     
       setMenuItems(mapped);
       setIsMenuLoaded(true);
     } else if (userMenu && userMenu.length === 0) {
       // Menú vacío del API - no mostrar nada
-      console.log('User menu is empty array - showing no menus');
+     
       setMenuItems([]);
       setIsMenuLoaded(true);
     } else {
       // userMenu es null o undefined - aún no cargado
-      console.log('No userMenu yet, waiting...');
+     
       setIsMenuLoaded(false);
     }
   }, [userMenu]);

@@ -53,7 +53,7 @@ export default function LoginPage() {
           <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
             <GraduationCap className="h-6 w-6" />
           </div>
-          <h1 className="text-xl font-semibold">Iniciar sesión</h1>
+          <h1 className="text-xl font-semibold">I.E.P Isaac Newton</h1>
           <p className="text-sm text-muted-foreground">Ingresa con tu usuario o correo institucional.</p>
         </div>
 
