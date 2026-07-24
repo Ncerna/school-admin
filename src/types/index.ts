@@ -222,7 +222,7 @@ export type { GradeCourse, GradeCoursePayload, AcademicYearOption as GradeCourse
 export type { FeeSchedule, FeeSchedulePayload } from "./fee-schedule";
 
 // Re-export Enrollment types
-export type { EnrollmentListItem, GeneratedCharge, EnrollmentPreview, EnrollmentConfirmed, EnrollmentPayload } from "./enrollment";
+export type { EnrollmentListItem, GeneratedCharge, EnrollmentPreview, EnrollmentConfirmed, EnrollmentPayload, WithdrawPreview, WithdrawConfirmResponse, WithdrawCharge, WithdrawSummary } from "./enrollment";
 
 // Re-export Payment types
 export type { Charge, ChargeApiResponse, PaymentMethodEntry, PaymentMethodEntryPayload, RegisterPaymentPayload, PaymentAllocation, PaymentResult, PaymentBatchResult, PaymentMethod, ChargeTypeOption } from "./payment";

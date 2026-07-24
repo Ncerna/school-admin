@@ -40,6 +40,8 @@ export const ENDPOINTS = {
   enrollments: "/enrollments",
   enrollmentPreview: "/enrollments/preview",
   enrollmentConfirm: "/enrollments/confirm",
+  enrollmentWithdrawPreview: (id: string | number) => `/enrollments/${id}/withdraw-preview`,
+  enrollmentWithdraw: (id: string | number) => `/enrollments/${id}/withdraw`,
   payments: "/payments",
   enrollmentCharges: (id: number) => `/enrollments/${id}/charges`,
   paymentMethods: "/payment-methods",

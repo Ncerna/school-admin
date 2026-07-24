@@ -1,4 +1,5 @@
 import { useState, useCallback } from "react";
+import { XCircle } from "lucide-react";
 import { ApiCrudPage } from "@/components/shared/ApiCrudPage";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { enrollmentsService } from "@/services/enrollments.service";
@@ -18,6 +19,7 @@ import {
   DialogBody,
 } from "@/components/ui/dialog";
 import { LoadingButton } from "@/components/common/LoadingButton";
+import WithdrawDialog from "./WithdrawDialog";
 import { X } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -513,9 +515,35 @@ export default function EnrollmentFormPage() {
     }
   }
 
+  // Withdraw dialog state
+  const [withdrawTarget, setWithdrawTarget] = useState<EnrollmentListItem | null>(null);
+
+  function handleWithdrawSuccess() {
+    setWithdrawTarget(null);
+    window.location.reload();
+  }
+
   return (
     <>
       <ApiCrudPage<EnrollmentListItem>
+        renderActions={(item) => (
+          <div className="flex justify-end gap-1">
+            {item.status === "Active" || item.status === "Activo" ? (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="text-red-600 hover:bg-red-50 hover:text-red-700"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setWithdrawTarget(item);
+                }}
+                title="Retirar matrícula"
+              >
+                <XCircle className="h-4 w-4" />
+              </Button>
+            ) : null}
+          </div>
+        )}
         title="Matrículas"
         description="Gestiona las matrículas de estudiantes."
         columns={columns}
@@ -586,6 +614,14 @@ renderFormDialog={({ open, onOpenChange, refetch }) => (
             }}
           />
         )}
+      />
+
+      <WithdrawDialog
+        open={!!withdrawTarget}
+        onOpenChange={(v) => { if (!v) setWithdrawTarget(null); }}
+        enrollmentId={withdrawTarget?.id || ""}
+        enrollmentName={withdrawTarget?.studentName || ""}
+        onSuccess={handleWithdrawSuccess}
       />
     </>
   );

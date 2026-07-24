@@ -253,11 +253,18 @@ export const apiClient = {
       throw new ApiError(`Error ${response.status}: ${response.statusText}`, response.status);
     }
 
-    const payload = (await response.json()) as ApiResponse<T>;
-    if (!payload.success) {
-      throw new ApiError(payload.message ?? "Unexpected error.", response.status, payload.errors ?? null);
+    const payload = (await response.json()) as ApiResponse<T> | T;
+    
+    // Handle both wrapped { success, data } and unwrapped responses
+    if (Array.isArray(payload)) {
+      return payload as T;
     }
-    return payload.data;
+    
+    const wrapped = payload as ApiResponse<T>;
+    if (!wrapped.success) {
+      throw new ApiError(wrapped.message ?? "Unexpected error.", response.status, wrapped.errors ?? null);
+    }
+    return wrapped.data;
   },
 
   /** Expose refresh function for manual refresh (e.g., from SessionExpiryModal) */

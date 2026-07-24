@@ -18,4 +18,10 @@ export const enrollmentsService = {
     apiClient.post<EnrollmentConfirmed>(ENDPOINTS.enrollmentConfirm, payload),
   // Get PDF URL
   getPdfUrl: (id: string) => `${API_BASE_URL}/enrollments/${id}/pdf`,
+  // Withdraw preview
+  withdrawPreview: (id: string) =>
+    apiClient.get<import("@/types").WithdrawPreview>(ENDPOINTS.enrollmentWithdrawPreview(id)),
+  // Confirm withdraw
+  withdrawConfirm: (id: string) =>
+    apiClient.post<import("@/types").WithdrawConfirmResponse>(ENDPOINTS.enrollmentWithdraw(id), { accepted: true }),
 };

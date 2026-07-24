@@ -1,5 +1,7 @@
 // Types for Enrollment module (RF-HU-022.2)
 
+import { ChargeApiResponse } from "./payment";
+
 // List item for the enrollment table
 export interface EnrollmentListItem {
   id: string;
@@ -63,4 +65,49 @@ export interface EnrollmentPayload {
   enrolledAt: string;
   enrollmentInstallments?: number;
   willPayTuition: boolean;
+}
+
+// ─── Withdraw types ──────────────────────────────────────────────────────────
+
+export interface WithdrawCharge {
+  id: number;
+  type: string;
+  label: string;
+  amount: number;
+  due_date: string;
+  status: string;
+}
+
+export interface WithdrawSummary {
+  total_pending: number;
+  total_paid: number;
+  total_charges: number;
+  cancelled_count: number;
+  paid_count: number;
+}
+
+export interface WithdrawPreview {
+  enrollment_id: number;
+  previous_status: string;
+  new_status: string;
+  student_name: string;
+  grade_name: string;
+  year_name: string;
+  vacancies_restored: number;
+  charges_cancelled: WithdrawCharge[];
+  charges_paid: WithdrawCharge[];
+  summary: WithdrawSummary;
+}
+
+export interface WithdrawConfirmResponse {
+  enrollment_id: number;
+  previous_status: string;
+  new_status: string;
+  student_name: string;
+  grade_name: string;
+  year_name: string;
+  vacancies_restored: number;
+  charges_cancelled: WithdrawCharge[];
+  charges_paid: WithdrawCharge[];
+  summary: WithdrawSummary;
 }
